@@ -8,8 +8,16 @@
 
 # Node
 /node_modules
+/frontend/node_modules
+/backend/node_modules
 npm-debug.log
 yarn-error.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+!/backend/.env.example
 
 # IDEs and editors
 .idea/
@@ -31,6 +39,7 @@ yarn-error.log
 
 # Miscellaneous
 /.angular/cache
+/frontend/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
@@ -38,6 +47,10 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+
+# Build output
+/frontend/dist
+/backend/dist
 
 # System files
 .DS_Store
