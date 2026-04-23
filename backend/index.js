@@ -6,6 +6,9 @@ const port = process.env.PORT || 3333;
 
 app.use(express.json());
 
+//public folder
+app.use(express.static(path.join(__dirname, 'public')));
+
 // health
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

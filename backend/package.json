@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --watch index.js",
     "dev": "NODE_ENV=development node index.js"
   },
   "dependencies": {
