@@ -1,0 +1,68 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <img src="logo.png" alt="Logo" style="height: 48px; width: 48px; margin-left: 8px; border-radius: 12px; object-fit: cover;" />
+    </ion-buttons>
+    <ion-title>Sports book</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Sports book</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Sport picker -->
+  <ion-item>
+    <ion-select label="Select Sport" [(ngModel)]="selectedSport" (ionChange)="onSportChange()">
+      @for (sport of sports; track sport.slug) {
+        <ion-select-option [value]="sport.slug">{{ sport.name }}</ion-select-option>
+      }
+    </ion-select>
+  </ion-item>
+
+  <!-- Loading spinner -->
+  @if (loading) {
+    <div style="display: flex; justify-content: center; padding: 24px;">
+      <ion-spinner></ion-spinner>
+    </div>
+  }
+
+  <!-- Events list -->
+  @if (!loading && events.length > 0) {
+    <ion-list>
+      @for (event of events; track event.id) {
+        <ion-item button (click)="selectEvent(event)" [color]="selectedEvent?.id === event.id ? 'primary' : ''">
+          <ion-label>
+            <h2>{{ event.home }} vs {{ event.away }}</h2>
+            <p>{{ event.league.name }} · {{ event.date | date:'MMM d, y, h:mm a' }}</p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  <!-- Odds -->
+  @if (selectedEvent && odds) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ selectedEvent.home }} vs {{ selectedEvent.away }}</ion-card-title>
+        <ion-card-subtitle>Odds</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        @for (bookmaker of odds; track bookmaker.bookmaker) {
+          <h3>{{ bookmaker.bookmaker }}</h3>
+          @for (market of bookmaker.markets; track market.name) {
+            <p><strong>{{ market.name }}</strong></p>
+            @for (outcome of market.outcomes; track outcome.name) {
+              <p>{{ outcome.name }}: {{ outcome.price }}</p>
+            }
+          }
+        }
+      </ion-card-content>
+    </ion-card>
+  }
+
+</ion-content>
