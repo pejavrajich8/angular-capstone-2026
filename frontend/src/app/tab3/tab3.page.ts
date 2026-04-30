@@ -4,11 +4,12 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
+  IonButtons,
 } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-tab3',
   templateUrl: 'tab3.page.html',
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButtons],
 })
 export class Tab3Page {}
