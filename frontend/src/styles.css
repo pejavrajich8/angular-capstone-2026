@@ -14,3 +14,12 @@
 
 /* Tailwind (available for custom components) */
 @import 'tailwindcss';
+
+@import url('https://fonts.googleapis.com/css2?family=Modak:wght@400&display=swap');
+
+.modak-regular {
+  font-family: 'Modak', cursive !important;
+  font-weight: 400;
+  font-size: 50px;
+  color: black;
+}
