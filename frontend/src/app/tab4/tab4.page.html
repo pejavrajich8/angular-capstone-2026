@@ -1,0 +1,135 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <img src="logo.png" alt="Logo" style="height: 48px; width: 48px; margin-left: 8px; border-radius: 12px; object-fit: cover;" />
+    </ion-buttons>
+    <ion-title>Sports Book</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Sports Book</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Sport chips -->
+  <div class="sport-chips">
+    @for (sport of sports; track sport.slug) {
+      <ion-chip
+        [color]="selectedSport === sport.slug ? 'primary' : 'medium'"
+        [outline]="selectedSport !== sport.slug"
+        (click)="selectSport(sport.slug)">
+        {{ sport.name }}
+      </ion-chip>
+    }
+  </div>
+
+  <!-- Loading spinner -->
+  @if (loading) {
+    <div class="spinner-wrap">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading events...</p>
+    </div>
+  }
+
+  <!-- Events cards -->
+  @if (!loading && events.length > 0) {
+    <div class="events-list">
+      @for (event of events; track event.id) {
+        <ion-card class="event-card" (click)="openBetModal(event)" button>
+          <!-- League + date bar -->
+          <div class="event-meta">
+            <ion-icon name="trophy-outline"></ion-icon>
+            <span>{{ event.league.name }}</span>
+            <span class="dot">·</span>
+            <span>{{ event.date | date:'MMM d, h:mm a' }}</span>
+            @if (getPick(event.id)) {
+              <ion-badge color="success" class="pick-badge">PICKED</ion-badge>
+            }
+          </div>
+
+          <!-- Matchup -->
+          <ion-card-content class="matchup">
+            <div class="team" [class.picked]="getPick(event.id) === event.home">
+              <div class="team-avatar">{{ initials(event.home) }}</div>
+              <span class="team-name">{{ event.home }}</span>
+            </div>
+
+            <div class="vs-block">
+              <span class="vs">VS</span>
+            </div>
+
+            <div class="team" [class.picked]="getPick(event.id) === event.away">
+              <div class="team-avatar">{{ initials(event.away) }}</div>
+              <span class="team-name">{{ event.away }}</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Bet modal -->
+  <ion-modal [isOpen]="modalOpen" (didDismiss)="closeModal()" [breakpoints]="[0, 0.6]" [initialBreakpoint]="0.6">
+    <ng-template>
+      <ion-content class="ion-padding bet-modal">
+        @if (selectedEvent) {
+          <!-- Drag handle -->
+          <div class="modal-handle"></div>
+
+          <!-- League + date -->
+          <p class="modal-meta">
+            <ion-icon name="trophy-outline"></ion-icon>
+            {{ selectedEvent.league.name }} · {{ selectedEvent.date | date:'MMM d, y · h:mm a' }}
+          </p>
+
+          <h2 class="modal-title">Who wins?</h2>
+
+          <!-- Team pick buttons -->
+          <div class="pick-buttons">
+            <div
+              class="pick-card"
+              [class.pick-card--selected]="getPick(selectedEvent.id) === selectedEvent.home"
+              (click)="placePick(selectedEvent, selectedEvent.home)">
+              <div class="pick-avatar">{{ initials(selectedEvent.home) }}</div>
+              <span class="pick-team">{{ selectedEvent.home }}</span>
+              @if (getPick(selectedEvent.id) === selectedEvent.home) {
+                <ion-icon name="checkmark-circle" color="success" class="check-icon"></ion-icon>
+              }
+            </div>
+
+            <div class="pick-divider">VS</div>
+
+            <div
+              class="pick-card"
+              [class.pick-card--selected]="getPick(selectedEvent.id) === selectedEvent.away"
+              (click)="placePick(selectedEvent, selectedEvent.away)">
+              <div class="pick-avatar">{{ initials(selectedEvent.away) }}</div>
+              <span class="pick-team">{{ selectedEvent.away }}</span>
+              @if (getPick(selectedEvent.id) === selectedEvent.away) {
+                <ion-icon name="checkmark-circle" color="success" class="check-icon"></ion-icon>
+              }
+            </div>
+          </div>
+
+          @if (getPick(selectedEvent.id)) {
+            <div class="pick-confirm">
+              <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+              <span>Picked: <strong>{{ getPick(selectedEvent.id) }}</strong></span>
+            </div>
+            <ion-button expand="block" color="danger" fill="clear" size="small" (click)="removePick(selectedEvent.id)">
+              Remove Pick
+            </ion-button>
+          }
+
+          <ion-button expand="block" (click)="closeModal()" style="margin-top: 12px;">
+            Done
+          </ion-button>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
