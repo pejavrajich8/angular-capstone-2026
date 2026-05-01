@@ -2,9 +2,9 @@ import { Component, NgZone, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
   IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonSpinner,
-  IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+  IonModal, IonBadge,
 } from '@ionic/angular/standalone';
 
 @Component({
@@ -12,18 +12,19 @@ import {
   templateUrl: 'tab4.page.html',
   imports: [
     FormsModule, DatePipe,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
     IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonSpinner,
-    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonModal, IonBadge,
   ],
 })
 export class Tab4Page implements OnInit {
   sports: { name: string; slug: string }[] = [];
   events: any[] = [];
-  odds: any = null;
   selectedSport = 'american-football';
   selectedEvent: any = null;
+  modalOpen = false;
   loading = false;
+  picks: Record<string, string> = {};
 
   limit = parseInt(localStorage.getItem('oddsLimit') ?? '25', 10);
 
@@ -31,7 +32,8 @@ export class Tab4Page implements OnInit {
 
   ngOnInit() {
     localStorage.setItem('oddsLimit', String(this.limit));
-    console.log(`Odds limit set to ${this.limit} (from localStorage)`);
+    const savedPicks = localStorage.getItem('picks');
+    if (savedPicks) this.picks = JSON.parse(savedPicks);
     this.loadSports();
     this.loadEvents();
   }
@@ -58,7 +60,6 @@ export class Tab4Page implements OnInit {
     this.loading = true;
     this.events = [];
     this.selectedEvent = null;
-    this.odds = null;
     const cacheKey = `cache:events:${this.selectedSport}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -82,24 +83,27 @@ export class Tab4Page implements OnInit {
     this.loadEvents();
   }
 
-  selectEvent(event: any) {
+  openBetModal(event: any) {
     this.selectedEvent = event;
-    this.odds = null;
-    const cacheKey = `cache:odds:${event.id}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      console.log(`Odds loaded from cache for event: ${event.id}`);
-      this.zone.run(() => { this.odds = JSON.parse(cached); });
-      return;
-    }
-    console.log(`Fetching odds for event: ${event.id} (${event.home} vs ${event.away})...`);
-    fetch(`/api/odds?eventId=${event.id}`)
-      .then(r => r.json())
-      .then(data => this.zone.run(() => {
-        console.log('Odds loaded:', data);
-        this.odds = data;
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-      }))
-      .catch(err => console.error('Error fetching odds:', err));
+    this.modalOpen = true;
+  }
+
+  closeModal() {
+    this.modalOpen = false;
+  }
+
+  getPick(eventId: string): string | null {
+    return this.picks[eventId] ?? null;
+  }
+
+  placePick(event: any, team: string) {
+    this.picks[event.id] = team;
+    localStorage.setItem('picks', JSON.stringify(this.picks));
+    console.log(`Pick placed: ${team} for event ${event.id}`);
+  }
+
+  removePick(eventId: string) {
+    delete this.picks[eventId];
+    localStorage.setItem('picks', JSON.stringify(this.picks));
   }
 }

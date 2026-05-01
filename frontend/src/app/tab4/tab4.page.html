@@ -34,35 +34,62 @@
   @if (!loading && events.length > 0) {
     <ion-list>
       @for (event of events; track event.id) {
-        <ion-item button (click)="selectEvent(event)" [color]="selectedEvent?.id === event.id ? 'primary' : ''">
+        <ion-item button (click)="openBetModal(event)">
           <ion-label>
             <h2>{{ event.home }} vs {{ event.away }}</h2>
             <p>{{ event.league.name }} · {{ event.date | date:'MMM d, y, h:mm a' }}</p>
           </ion-label>
+          @if (getPick(event.id)) {
+            <ion-badge slot="end" color="success">{{ getPick(event.id) }}</ion-badge>
+          }
         </ion-item>
       }
     </ion-list>
   }
 
-  <!-- Odds -->
-  @if (selectedEvent && odds) {
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>{{ selectedEvent.home }} vs {{ selectedEvent.away }}</ion-card-title>
-        <ion-card-subtitle>Odds</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        @for (bookmaker of odds; track bookmaker.bookmaker) {
-          <h3>{{ bookmaker.bookmaker }}</h3>
-          @for (market of bookmaker.markets; track market.name) {
-            <p><strong>{{ market.name }}</strong></p>
-            @for (outcome of market.outcomes; track outcome.name) {
-              <p>{{ outcome.name }}: {{ outcome.price }}</p>
-            }
+  <!-- Bet modal -->
+  <ion-modal [isOpen]="modalOpen" (didDismiss)="closeModal()" [breakpoints]="[0, 0.5]" [initialBreakpoint]="0.5">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Place Your Pick</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        @if (selectedEvent) {
+          <p style="text-align: center; color: var(--ion-color-medium); margin-bottom: 16px;">
+            {{ selectedEvent.league.name }} · {{ selectedEvent.date | date:'MMM d, y' }}
+          </p>
+          <div style="display: flex; gap: 12px;">
+            <ion-button
+              expand="block"
+              style="flex: 1;"
+              [color]="getPick(selectedEvent.id) === selectedEvent.home ? 'success' : 'primary'"
+              (click)="placePick(selectedEvent, selectedEvent.home)">
+              {{ selectedEvent.home }}
+            </ion-button>
+            <ion-button
+              expand="block"
+              style="flex: 1;"
+              [color]="getPick(selectedEvent.id) === selectedEvent.away ? 'success' : 'primary'"
+              (click)="placePick(selectedEvent, selectedEvent.away)">
+              {{ selectedEvent.away }}
+            </ion-button>
+          </div>
+          @if (getPick(selectedEvent.id)) {
+            <p style="text-align: center; margin-top: 16px; color: var(--ion-color-success);">
+              You picked: <strong>{{ getPick(selectedEvent.id) }}</strong>
+            </p>
+            <ion-button expand="block" color="danger" fill="outline" (click)="removePick(selectedEvent.id)">
+              Remove Pick
+            </ion-button>
           }
         }
-      </ion-card-content>
-    </ion-card>
-  }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
 </ion-content>
