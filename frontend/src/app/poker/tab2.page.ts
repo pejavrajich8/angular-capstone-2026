@@ -8,7 +8,8 @@ import {
 
 @Component({
   selector: 'app-tab2',
-  templateUrl: 'tab2.page.html',
+  templateUrl: './tab2.page.html',
+  styleUrls: ['./tab2.page.css'],
   imports: [IonHeader, IonToolbar, IonTitle, IonContent],
 })
 export class Tab2Page {}
