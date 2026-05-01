@@ -3,18 +3,22 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-  IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonSpinner,
-  IonModal, IonBadge,
+  IonSpinner, IonModal, IonBadge, IonChip, IonIcon,
+  IonCard, IonCardContent,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { trophyOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tab4',
   templateUrl: 'tab4.page.html',
+  styleUrl: 'tab4.page.scss',
   imports: [
     FormsModule, DatePipe,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-    IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonSpinner,
-    IonModal, IonBadge,
+    IonSpinner,
+    IonModal, IonBadge, IonChip, IonIcon,
+    IonCard, IonCardContent,
   ],
 })
 export class Tab4Page implements OnInit {
@@ -28,7 +32,9 @@ export class Tab4Page implements OnInit {
 
   limit = parseInt(localStorage.getItem('oddsLimit') ?? '25', 10);
 
-  constructor(private zone: NgZone) {}
+  constructor(private zone: NgZone) {
+    addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline });
+  }
 
   ngOnInit() {
     localStorage.setItem('oddsLimit', String(this.limit));
@@ -79,7 +85,8 @@ export class Tab4Page implements OnInit {
       .catch(err => this.zone.run(() => { console.error('Error fetching events:', err); this.loading = false; }));
   }
 
-  onSportChange() {
+  selectSport(slug: string) {
+    this.selectedSport = slug;
     this.loadEvents();
   }
 
@@ -105,5 +112,9 @@ export class Tab4Page implements OnInit {
   removePick(eventId: string) {
     delete this.picks[eventId];
     localStorage.setItem('picks', JSON.stringify(this.picks));
+  }
+
+  initials(name: string): string {
+    return name.slice(0, 2).toUpperCase();
   }
 }
