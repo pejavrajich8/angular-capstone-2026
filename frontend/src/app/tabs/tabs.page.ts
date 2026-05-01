@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {
   IonTabs,
+  IonRouterOutlet,
   IonTabBar,
   IonTabButton,
   IonIcon,
@@ -12,10 +13,17 @@ import { triangle, ellipse, square } from 'ionicons/icons';
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
-  imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
+  styleUrls: ['tabs.page.css'],
+  imports: [IonTabs, IonRouterOutlet, IonTabBar, IonTabButton, IonIcon, IonLabel],
 })
 export class TabsPage {
+  tabsHidden = false;
+
   constructor() {
     addIcons({ triangle, ellipse, square });
+  }
+
+  toggleTabs() {
+    this.tabsHidden = !this.tabsHidden;
   }
 }
