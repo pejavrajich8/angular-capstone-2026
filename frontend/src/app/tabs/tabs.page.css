@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-tabs {
+  height: 100%;
+}
+
+ion-tabs.tabs-hidden ion-tab-bar {
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+ion-tab-bar {
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.tabs-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(160deg, rgba(45, 48, 54, 0.95), rgba(20, 22, 26, 0.95));
+  color: #f8f6f0;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .tabs-toggle {
+    right: 12px;
+    bottom: 12px;
+  }
+}

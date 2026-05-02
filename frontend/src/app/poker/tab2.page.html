@@ -1,0 +1,118 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Poker Table</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="poker-view">
+  <div class="scene">
+    <div class="table-wrap">
+      <div class="table-shadow"></div>
+      <div class="table-rail"></div>
+      <div class="table-felt"></div>
+      <div class="table-line"></div>
+
+      <div class="table-logo">High Stakes</div>
+
+      <div class="pot">
+        <span class="label">Pot</span>
+        <span class="value">$32.41</span>
+      </div>
+
+      <div class="board" aria-hidden="true">
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+      </div>
+
+      <div class="chips" aria-hidden="true">
+        <div class="chip"></div>
+        <div class="chip blue"></div>
+        <div class="chip gold"></div>
+      </div>
+
+      <div class="seat top">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">AlexElisev7</span>
+          <span class="stack">$139.20</span>
+        </div>
+        <div class="back-cards" aria-hidden="true">
+          <div class="card back"></div>
+          <div class="card back"></div>
+        </div>
+      </div>
+      <div class="seat top-left">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">alkash613</span>
+          <span class="stack">$100</span>
+        </div>
+        <div class="back-cards" aria-hidden="true">
+          <div class="card back"></div>
+          <div class="card back"></div>
+        </div>
+      </div>
+      <div class="seat top-right">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">irc122</span>
+          <span class="stack">$136.40</span>
+        </div>
+        <div class="back-cards" aria-hidden="true">
+          <div class="card back"></div>
+          <div class="card back"></div>
+        </div>
+      </div>
+      <div class="seat left">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">yield1990</span>
+          <span class="stack">$90.93</span>
+        </div>
+        <div class="back-cards" aria-hidden="true">
+          <div class="card back"></div>
+          <div class="card back"></div>
+        </div>
+      </div>
+      <div class="seat right">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">ZacheusBB</span>
+          <span class="stack">$121.85</span>
+        </div>
+        <div class="back-cards" aria-hidden="true">
+          <div class="card back"></div>
+          <div class="card back"></div>
+        </div>
+      </div>
+      <div class="seat bottom">
+        <div class="avatar"></div>
+        <div class="nameplate">
+          <span class="player">You</span>
+          <span class="stack">$79.28</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hand-dock">
+      <div class="hand-cards">
+        <div class="card"></div>
+        <div class="card"></div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="action-btn fold" type="button">Fold</button>
+      <button class="action-btn call" type="button">Call</button>
+      <button class="action-btn raise" type="button">Raise</button>
+    </div>
+
+    <p class="caption">
+      <strong>Third-person table view</strong> inspired by classic online poker
+      layouts. Add real avatars, card faces, and chip stacks when ready.
+    </p>
+  </div>
+</ion-content>
