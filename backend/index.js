@@ -13,6 +13,7 @@ if (!process.env.ODDS_API_KEY) {
 
 const ODDS_API_KEY = process.env.ODDS_API_KEY;
 const ODDS_BASE_URL = 'https://api.odds-api.io/v3';
+const DECK_API_BASE_URL = 'https://deckofcardsapi.com/api/deck';
 
 app.use(express.json());
 
@@ -82,6 +83,36 @@ app.get('/api/odds', async (req, res) => {
 
 // static fallback (if you want to serve built frontend from ../frontend/dist)
 app.use('/', express.static(path.join(__dirname, '..', 'frontend', 'dist')));
+
+//BLACKJACK API
+app.get('/api/deck/create', async (_req, res) => {
+  try {
+    const response = await fetch(`${DECK_API_BASE_URL}/new/shuffle/?deck_count=1`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error creating deck:', error.message);
+    res.status(502).json({ error: error.message });
+  }
+});
+
+app.get('/api/deck/draw', async (req, res) => {
+  const deckId = req.query.deckId;
+  const count = req.query.count || 1;
+
+  if (!deckId) {
+    return res.status(400).json({ error: 'deckId is required' });
+  }
+
+  try {
+    const response = await fetch(`${DECK_API_BASE_URL}/${deckId}/draw/?count=${count}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error drawing cards:', error.message);
+    res.status(502).json({ error: error.message });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`);

@@ -4,11 +4,13 @@
     <ion-buttons slot="start">
       <img src="logo.png" alt="Logo" style="height: 48px; width: 48px; margin-left: 8px; border-radius: 12px; object-fit: cover;" />
     </ion-buttons>
-    <ion-title>BlackJack</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-button (click)="createDeck()" color="primary">Create Deck</ion-button>
+  <ion-button (click)="drawCards()">Draw Cards</ion-button>
+
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Tab 1</ion-title>
