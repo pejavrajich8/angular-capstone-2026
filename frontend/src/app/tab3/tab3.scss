@@ -6,7 +6,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
   margin: 16px 12px 0;
-  color: white;
+  color: rgb(41, 35, 35);
 
   .balance-card {
     text-align: center;
@@ -54,50 +54,10 @@
       position: relative;
       box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 80px;
-        left: 0;
-        right: 0;
-        height: 80px;
-        background: linear-gradient(to bottom, transparent 0%, rgba(102, 126, 234, 0.2) 50%, transparent 100%);
-        border: 2px solid rgba(102, 126, 234, 0.4);
-        box-shadow: inset 0 2px 8px rgba(102, 126, 234, 0.1);
-        pointer-events: none;
-        z-index: 10;
-        border-radius: 8px;
-      }
-
-      .reel {
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.05s linear;
-        will-change: transform;
-
-        &.spinning {
-          transition: none;
-        }
-
-        .reel-item {
-          width: 80px;
-          height: 80px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 48px;
-          font-weight: bold;
-          background: rgba(255, 255, 255, 0.05);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
-          &:hover {
-            background: rgba(255, 255, 255, 0.08);
-          }
-        }
+     
       }
     }
   }
-}
 
 .result-section {
   text-align: center;

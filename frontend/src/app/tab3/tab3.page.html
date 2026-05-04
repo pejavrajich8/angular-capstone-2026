@@ -45,11 +45,6 @@
 
       <!-- Reel 3 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel3Offset + 'px)'" [class.spinning]="isSpinning"> 
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
-        </div>
       </div>
     </div>
   </div>
