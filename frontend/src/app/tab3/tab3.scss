@@ -59,10 +59,25 @@ ion-content {
       position: relative;
       box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
 
-     
+      .reel {
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.1s linear;
+      }
+
+      .reel-item {
+        width: 100%;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: bold;
+        flex-shrink: 0;
       }
     }
   }
+}
 
 .result-section {
   text-align: center;
