@@ -1,0 +1,56 @@
+.modak-regular {
+  font-style: normal;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  padding-bottom: 50px;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.dealer-section {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.dealer-section h2 {
+  margin-bottom: 15px;
+}
+
+.player-section {
+  width: 100%;
+  text-align: center;
+}
+
+.player-section h2 {
+  margin-bottom: 15px;
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.card-image {
+  width: 100px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
