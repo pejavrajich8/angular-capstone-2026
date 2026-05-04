@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3333;
@@ -16,6 +17,29 @@ const ODDS_BASE_URL = 'https://api.odds-api.io/v3';
 const DECK_API_BASE_URL = 'https://deckofcardsapi.com/api/deck';
 
 app.use(express.json());
+
+// CORS (allow Ionic dev + your deployed hosting)
+// Set BACKEND_ALLOWED_ORIGINS in Render to a comma-separated list, e.g.
+// https://your-app.web.app,https://your-app.firebaseapp.com
+const allowedOrigins = [
+  'http://localhost:8100',
+  'http://localhost:4200',
+  ...(process.env.BACKEND_ALLOWED_ORIGINS
+    ? process.env.BACKEND_ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+    : []),
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow non-browser requests (curl/postman) with no Origin header
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  }),
+);
 
 //public folder
 app.use(express.static(path.join(__dirname, 'public')));
