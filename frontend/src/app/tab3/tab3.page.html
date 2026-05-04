@@ -3,14 +3,73 @@
     <ion-buttons slot="start">
       <img src="logo.png" alt="Logo" style="height: 48px; width: 48px; margin-left: 8px; border-radius: 12px; object-fit: cover;" />
     </ion-buttons>
-    <ion-title>Tab 3</ion-title>
+    <ion-title>Slots Game</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
+      <ion-title size="large">Slots Game</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Balance Section -->
+  <div class="balance-section">
+    <div class="balance-card">
+      <p class="balance-label">Balance</p>
+      <p class="balance-amount">{{ balance | currency }}</p>
+    </div>
+  </div>
+
+  <!-- Slots Machine -->
+  <div class="slots-machine">
+    <div class="slots-display">
+      <!-- Reel 1 -->
+      <div class="reel-container">
+        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
+          @for (symbol of reelSymbols; track $index) {
+            <div class="reel-item">{{ symbol }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Reel 2 -->
+      <div class="reel-container">
+        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
+          @for (symbol of reelSymbols; track $index) {
+            <div class="reel-item">{{ symbol }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Reel 3 -->
+      <div class="reel-container">
+        <div class="reel" [style.transform]="'translateY(' + reel3Offset + 'px)'" [class.spinning]="isSpinning">
+          @for (symbol of reelSymbols; track $index) {
+            <div class="reel-item">{{ symbol }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Message -->
+  @if (lastResult && !isSpinning) {
+    <div class="result-section" [class.win]="lastResult.isWin">
+      <p class="result-title">{{ lastResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
+      <p class="result-amount">{{ lastResult.isWin ? '+' : '-' }}{{ lastResult.amount | currency }}</p>
+    </div>
+  }
+
+  <!-- Spin Button -->
+  <div class="button-section">
+    <ion-button 
+      expand="block" 
+      [color]="balance >= betAmount ? 'primary' : 'medium'"
+      [disabled]="isSpinning || balance < betAmount"
+      (click)="spin()">
+      {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
+    </ion-button>
+  </div>
 </ion-content>
