@@ -58,11 +58,46 @@ export class Tab3Page {
     this.spinResult = null;
     this.balance -= this.betAmount;
 
-    this.displaySymbols = [
+    // Generate the final symbols that will be shown
+    const finalSymbols: [string, string, string] = [
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
       this.symbols[Math.floor(Math.random() * this.symbols.length)]
     ];
+
+    // Animate each reel stopping at different times
+    this.animateReel(0, finalSymbols[0], this.SPIN_DURATIONS[0]);
+    this.animateReel(1, finalSymbols[1], this.SPIN_DURATIONS[1]);
+    this.animateReel(2, finalSymbols[2], this.SPIN_DURATIONS[2], () => {
+      // After the last reel stops, finish the spin
+      this.finishSpin(finalSymbols);
+    });
+  }
+
+  private animateReel(
+    index: 0 | 1 | 2,
+    finalSymbol: string,
+    duration: number,
+    onComplete?: () => void
+  ) {
+    const startTime = Date.now();
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = elapsed / duration;
+
+      if (progress < 1) {
+        // Show random symbol while spinning
+        this.displaySymbols[index] = this.symbols[Math.floor(Math.random() * this.symbols.length)];
+        requestAnimationFrame(tick);
+      } else {
+        // Snap to the final symbol
+        this.displaySymbols[index] = finalSymbol;
+        onComplete?.();
+      }
+    };
+
+    requestAnimationFrame(tick);
   }
 
   private finishSpin(symbols: [string, string, string]) {
@@ -89,5 +124,8 @@ export class Tab3Page {
       symbols: `${r1} ${r2} ${r3}`,
       tier
     };
+    this.isSpinning = false;
   }
+
+  
 }

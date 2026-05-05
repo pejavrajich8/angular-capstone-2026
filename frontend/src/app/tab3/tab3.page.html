@@ -48,20 +48,19 @@
     </div>
   </div>
 
-  <!-- Result Message -->
-  <!-- @if (lastResult && !isSpinning) {
-    <div class="result-section" [class.win]="lastResult.isWin">
-      <p class="result-title">{{ lastResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
-      <p class="result-amount">{{ lastResult.isWin ? '+' : '-' }}{{ lastResult.amount | currency }}</p>
+  @if (spinResult && !isSpinning) {
+    <div class="result-section" [class.win]="spinResult.isWin">
+      <p class="result-title">{{ spinResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
+      <p class="result-amount">{{ spinResult.isWin ? '+' : '-' }}{{ spinResult.amount | currency }}</p>
     </div>
-  } -->
+  }
 
   <!-- Spin Button -->
   <div class="button-section">
     <ion-button 
       expand="block" 
       [color]="balance >= betAmount ? 'primary' : 'medium'"
-      [disabled]="balance < betAmount"
+      [disabled]="isSpinning || balance < betAmount"
       (click)="spin()">
     </ion-button>
   </div>
