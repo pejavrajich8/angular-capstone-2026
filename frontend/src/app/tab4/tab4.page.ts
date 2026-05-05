@@ -33,6 +33,17 @@ export class Tab4Page implements OnInit {
 
   limit = parseInt(localStorage.getItem('oddsLimit') ?? '25', 10);
 
+  private readonly americanSports = new Set([
+    'american-football',
+    'basketball',
+    'baseball',
+    'ice-hockey',
+    'mixed-martial-arts',
+    'boxing',
+    'lacrosse',
+    'golf',
+  ]);
+
   constructor(private zone: NgZone) {
     addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline });
   }
@@ -49,7 +60,7 @@ export class Tab4Page implements OnInit {
     const cached = localStorage.getItem('cache:sports');
     if (cached) {
       console.log('Sports loaded from cache');
-      this.sports = JSON.parse(cached);
+      this.sports = JSON.parse(cached).filter((s: { slug: string }) => this.americanSports.has(s.slug));
       return;
     }
     console.log('Fetching sports...');
@@ -57,8 +68,8 @@ export class Tab4Page implements OnInit {
       .then(r => r.json())
       .then(data => this.zone.run(() => {
         console.log('Sports loaded:', data);
-        this.sports = data;
-        localStorage.setItem('cache:sports', JSON.stringify(data));
+        this.sports = data.filter((s: { slug: string }) => this.americanSports.has(s.slug));
+        localStorage.setItem('cache:sports', JSON.stringify(this.sports));
       }))
       .catch(err => console.error('Error fetching sports:', err));
   }
