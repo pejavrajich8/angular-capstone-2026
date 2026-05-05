@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 import {
   IonHeader,
   IonToolbar,
@@ -56,7 +57,7 @@ export class Tab1Page {
   }
 
   createDeck() {
-    this.http.get('/api/deck/create').subscribe((data: any) => {
+  this.http.get(`${environment.apiBaseUrl}/api/deck/create`).subscribe((data: any) => {
       console.log('New deck:', data);
       this.deckId = data.deck_id;
     });
@@ -83,6 +84,8 @@ export class Tab1Page {
   hitMe() {
     // Draw 1 more card for the player
     this.http.get(`/api/deck/draw?deckId=${this.deckId}&count=1`)
+  drawCards(count: number = 2) {
+  this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=${count}`)
       .subscribe((data: any) => {
         console.log('New card:', data.cards[0]);
         this.playerCards.push(data.cards[0]);

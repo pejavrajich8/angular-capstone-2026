@@ -8,6 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { trophyOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-tab4',
@@ -52,7 +53,7 @@ export class Tab4Page implements OnInit {
       return;
     }
     console.log('Fetching sports...');
-    fetch('/api/sports')
+  fetch(`${environment.apiBaseUrl}/api/sports`)
       .then(r => r.json())
       .then(data => this.zone.run(() => {
         console.log('Sports loaded:', data);
@@ -74,7 +75,7 @@ export class Tab4Page implements OnInit {
       return;
     }
     console.log(`Fetching events for sport: ${this.selectedSport}...`);
-    fetch(`/api/events?sport=${this.selectedSport}&limit=${this.limit}`)
+  fetch(`${environment.apiBaseUrl}/api/events?sport=${this.selectedSport}&limit=${this.limit}`)
       .then(r => r.json())
       .then(data => this.zone.run(() => {
         console.log('Events loaded:', data);
