@@ -29,7 +29,9 @@
 
 // Match tab4 background
 ion-content {
-  --background: black;
+  --background:
+    radial-gradient(1200px 700px at 50% 0%, #3d3f45 0%, #222328 45%, #131417 100%),
+    linear-gradient(135deg, #1d1f24 0%, #0f1013 100%);
 }
 
 

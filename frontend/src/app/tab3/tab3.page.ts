@@ -1,98 +1,60 @@
-import { Component, OnInit } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton } from '@ionic/angular/standalone';
+import { Component } from '@angular/core';
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonButtons, IonButton
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
-import { CurrencyPipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
+
+interface SpinResult {
+  isWin: boolean;
+  amount: number;
+  symbols: string;
+  tier: 'jackpot' | 'partial' | 'loss';
+}
 
 @Component({
   selector: 'app-tab3',
+  standalone: true,
   templateUrl: 'tab3.page.html',
   styleUrl: 'tab3.scss',
   imports: [
-    IonHeader,
+    IonHeader, 
     IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButtons,
-    FormsModule,
-    CommonModule,
+    IonTitle, 
+    IonContent, 
+    IonButtons, 
     IonButton,
-    CurrencyPipe
+    FormsModule,
+    CommonModule
   ],
 })
-export class Tab3Page implements OnInit {
-  balance: number = 1000;
+export class Tab3Page {
+  symbols: string[] = ['🍎', '🍊', '🍋', '🍌', '🍇', '🍓'];
+  displaySymbols: [string, string, string] = ['🍎', '🍎', '🍎'];
   betAmount: number = 10;
-  isSpinning: boolean = false;
-  reel1Offset: number = 0;
-  reel2Offset: number = 0;
-  reel3Offset: number = 0;
-  reelSymbols: string[] = ['🍎', '🍊', '🍋', '🍌', '🍇', '🍓'];
-  lastResult: any = null;
-  spinHistory: any[] = [];
+  spinResult: SpinResult | null = null;
+  balance: number = 1000; 
 
-  ngOnInit() {
-    // Initialize component
+  private readonly Max_Spins: number = 50;
+  private readonly SPIN_DURATIONS = [1200, 1600, 2000];
+
+  get minBet(): number {
+    return 1;
   }
-
-  onBetChange() {
-    // Handle bet amount changes
+  get maxBet(): number {
+    return this.balance;
   }
-
   spin() {
-    if (this.isSpinning || this.balance < this.betAmount) {
+    if (this.balance < this.betAmount) {
       return;
     }
 
-    this.isSpinning = true;
-    this.balance -= this.betAmount;
-
-    // Animate reels
-    const spinDuration = 2000; // 2 seconds
-    const startTime = Date.now();
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / spinDuration, 1);
-
-      // Fast spinning animation
-      this.reel1Offset = -progress * 600;
-      this.reel2Offset = -progress * 600;
-      this.reel3Offset = -progress * 600;
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        this.finishSpin();
-      }
-    };
-
-    requestAnimationFrame(animate);
+    this.displaySymbols = [
+      this.symbols[Math.floor(Math.random() * this.symbols.length)],
+      this.symbols[Math.floor(Math.random() * this.symbols.length)],
+      this.symbols[Math.floor(Math.random() * this.symbols.length)]
+    ];
   }
 
-  private finishSpin() {
-    // Generate random results
-    const reel1 = this.reelSymbols[Math.floor(Math.random() * this.reelSymbols.length)];
-    const reel2 = this.reelSymbols[Math.floor(Math.random() * this.reelSymbols.length)];
-    const reel3 = this.reelSymbols[Math.floor(Math.random() * this.reelSymbols.length)];
-
-    // Check if win
-    const isWin = reel1 === reel2 && reel2 === reel3;
-    const winAmount = isWin ? this.betAmount * 10 : 0;
-
-    if (isWin) {
-      this.balance += winAmount;
-    }
-
-    this.lastResult = {
-      isWin,
-      amount: winAmount,
-      symbols: `${reel1} ${reel2} ${reel3}`
-    };
-
-    // Add to history
-    this.spinHistory.unshift(this.lastResult);
-
-    this.isSpinning = false;
-  }
 }

@@ -27,49 +27,42 @@
     <div class="slots-display">
       <!-- Reel 1 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">{{ displaySymbols[0] }}</div>
         </div>
       </div>
 
       <!-- Reel 2 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">{{ displaySymbols[1] }}</div>
         </div>
       </div>
 
       <!-- Reel 3 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel3Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">{{ displaySymbols[2] }}</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Result Message -->
-  @if (lastResult && !isSpinning) {
+  <!-- @if (lastResult && !isSpinning) {
     <div class="result-section" [class.win]="lastResult.isWin">
       <p class="result-title">{{ lastResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
       <p class="result-amount">{{ lastResult.isWin ? '+' : '-' }}{{ lastResult.amount | currency }}</p>
     </div>
-  }
+  } -->
 
   <!-- Spin Button -->
   <div class="button-section">
     <ion-button 
       expand="block" 
       [color]="balance >= betAmount ? 'primary' : 'medium'"
-      [disabled]="isSpinning || balance < betAmount"
+      [disabled]="balance < betAmount"
       (click)="spin()">
-      {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
     </ion-button>
   </div>
 </ion-content>
