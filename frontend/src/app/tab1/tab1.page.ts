@@ -97,7 +97,7 @@ export class Tab1Page {
             alert('You Lose! Hand value: ' + playerValue);
             location.reload();
           }
-        }, 1500);
+        }, 500);
       });
   }
 

@@ -16,6 +16,7 @@
 @import 'tailwindcss';
 
 @import url('https://fonts.googleapis.com/css2?family=Modak:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gasoek+One&display=swap');
 
 .modak-regular {
   font-family: 'Modak', cursive !important;
@@ -43,7 +44,7 @@
   flex-direction: column;
   height: 100%;
   justify-content: space-between;
-  padding: 20px;
+  padding: 10px;
 }
 
 .dealer-section,
@@ -51,7 +52,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .dealer-section {
@@ -63,7 +64,7 @@
 .player-section {
   flex: 1;
   justify-content: flex-end;
-  padding-bottom: 50px;
+  padding-bottom: 100px;
 }
 
 .cards {
@@ -79,4 +80,32 @@
   object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.but {
+  width: 120px !important;
+  height: 60px !important;
+}
+.gasoek-one-regular {
+  font-family: "Gasoek One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.but{
+  font-family: 'Modak', cursive !important;
+  font-weight: 400;
+  font-size: 50px;
+  color: black;
+  color: white;
+  margin-top: 60px;
+  font-size: larger;
+  width: 15%;
+  height: 60%;
 }
