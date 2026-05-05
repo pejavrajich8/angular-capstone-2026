@@ -65,13 +65,13 @@ export class Tab1Page {
 
   drawCards() {
     // Draw 2 cards for dealer
-    this.http.get(`/api/deck/draw?deckId=${this.deckId}&count=2`)
+    this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
       .subscribe((data: any) => {
         console.log('Dealer cards:', data.cards);
         this.dealerCards = data.cards;
 
         // Draw 2 cards for player
-        this.http.get(`/api/deck/draw?deckId=${this.deckId}&count=2`)
+        this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
           .subscribe((playerData: any) => {
             console.log('Player cards:', playerData.cards);
             this.playerCards = playerData.cards;
@@ -82,10 +82,7 @@ export class Tab1Page {
   }
 
   hitMe() {
-    // Draw 1 more card for the player
-    this.http.get(`/api/deck/draw?deckId=${this.deckId}&count=1`)
-  drawCards(count: number = 2) {
-  this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=${count}`)
+    this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
       .subscribe((data: any) => {
         console.log('New card:', data.cards[0]);
         this.playerCards.push(data.cards[0]);
@@ -115,7 +112,7 @@ export class Tab1Page {
 
       if (dealerValue < 17) {
         // Dealer draws another card
-        this.http.get(`/api/deck/draw?deckId=${this.deckId}&count=1`)
+        this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
           .subscribe((data: any) => {
             this.dealerCards.push(data.cards[0]);
             dealerDrawLoop();
