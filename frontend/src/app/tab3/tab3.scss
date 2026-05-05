@@ -70,6 +70,7 @@ ion-content {
   --background:
     radial-gradient(1200px 700px at 50% 0%, #3d3f45 0%, #222328 45%, #131417 100%),
     linear-gradient(135deg, #1d1f24 0%, #0f1013 100%);
+    animation: riseIn 800ms ease-out;
 }
 
 
@@ -79,6 +80,7 @@ ion-content {
   justify-content: center;
   align-items: center;
   padding: 24px 16px;
+  animation: riseIn 800ms ease-out;
 
   .slots-display {
     display: flex;
@@ -247,5 +249,17 @@ ion-content {
     color: var(--ion-color-medium);
     padding: 24px;
     font-style: italic;
+  }
+}
+
+// Animation for page load
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
