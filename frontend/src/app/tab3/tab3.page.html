@@ -71,7 +71,6 @@
   <div class="button-section">
     <ion-button 
       expand="block" 
-      [color]="balance >= betAmount ? 'primary' : 'medium'"
       [disabled]="isSpinning || balance < betAmount"
       (click)="spin()">
       {{ isSpinning ? 'SPINNING...' : 'SPIN' }}

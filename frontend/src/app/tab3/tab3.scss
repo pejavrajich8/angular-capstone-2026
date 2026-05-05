@@ -162,13 +162,18 @@ ion-content {
     --border-radius: 12px;
     --padding-start: 32px;
     --padding-end: 32px;
+    --background: #0f1013;
+    --color: #764ba2;
+    --border-color: #764ba2;
+    --border-style: solid;
+    --border-width: 1px;
     font-weight: 700;
     letter-spacing: 1px;
     height: 56px;
     font-size: 18px;
     text-transform: uppercase;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    transition: all 0.2s ease;  
 
     &:not([disabled]) {
       &:active {
