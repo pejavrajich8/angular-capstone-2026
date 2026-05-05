@@ -31,7 +31,7 @@ export class Tab4Page implements OnInit {
   loading = false;
   picks: Record<string, string> = {};
 
-  limit = parseInt(localStorage.getItem('oddsLimit') ?? '25', 10);
+  limit = 200;
 
   private readonly americanSports = new Set([
     'american-football',
@@ -49,8 +49,7 @@ export class Tab4Page implements OnInit {
   }
 
   ngOnInit() {
-    localStorage.setItem('oddsLimit', String(this.limit));
-    const savedPicks = localStorage.getItem('picks');
+const savedPicks = localStorage.getItem('picks');
     if (savedPicks) this.picks = JSON.parse(savedPicks);
     this.loadSports();
     this.loadEvents();
@@ -78,11 +77,11 @@ export class Tab4Page implements OnInit {
     this.loading = true;
     this.events = [];
     this.selectedEvent = null;
-    const cacheKey = `cache:events:${this.selectedSport}`;
+    const cacheKey = `cache:events:${this.selectedSport}:${this.limit}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       console.log(`Events loaded from cache for sport: ${this.selectedSport}`);
-      this.zone.run(() => { this.events = JSON.parse(cached); this.loading = false; });
+      this.zone.run(() => { this.events = JSON.parse(cached).filter((e: any) => e.league?.name?.startsWith('USA')); this.loading = false; });
       return;
     }
     console.log(`Fetching events for sport: ${this.selectedSport}...`);
@@ -90,9 +89,9 @@ export class Tab4Page implements OnInit {
       .then(r => r.json())
       .then(data => this.zone.run(() => {
         console.log('Events loaded:', data);
-        this.events = data;
+        this.events = data.filter((e: any) => e.league?.name?.startsWith('USA'));
         this.loading = false;
-        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(cacheKey, JSON.stringify(this.events));
       }))
       .catch(err => this.zone.run(() => { console.error('Error fetching events:', err); this.loading = false; }));
   }
