@@ -1,6 +1,6 @@
 .sport-chips {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   padding: 12px 16px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -9,6 +9,7 @@
   ion-chip {
     flex-shrink: 0;
     font-weight: 600;
+    padding: 6px 24px;
   }
 }
 
