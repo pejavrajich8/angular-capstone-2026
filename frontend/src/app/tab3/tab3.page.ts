@@ -35,6 +35,7 @@ export class Tab3Page {
   betAmount: number = 10;
   spinResult: SpinResult | null = null;
   balance: number = 1000; 
+  isSpinning: boolean = false;
 
   private readonly Max_Spins: number = 50;
   private readonly SPIN_DURATIONS = [1200, 1600, 2000];
@@ -45,10 +46,17 @@ export class Tab3Page {
   get maxBet(): number {
     return this.balance;
   }
+  betChange() {
+    this.betAmount = Math.max(this.minBet, Math.min(this.maxBet, this.betAmount || this.minBet));
+  }
+
   spin() {
-    if (this.balance < this.betAmount) {
+    if (this.isSpinning || this.balance < this.betAmount || this.betAmount <= 0) {
       return;
     }
+    this.isSpinning = true;
+    this.spinResult = null;
+    this.balance -= this.betAmount;
 
     this.displaySymbols = [
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
@@ -57,4 +65,29 @@ export class Tab3Page {
     ];
   }
 
+  private finishSpin(symbols: [string, string, string]) {
+    const [r1, r2, r3] = symbols;
+    const allMatch = r1 === r2 && r2 === r3;
+    const twoMatch = r1 === r2 || r2 === r3 || r1 === r3;
+ 
+    let winAmount = 0;
+    let tier: SpinResult['tier'] = 'loss';
+ 
+    if (allMatch) {
+      winAmount = this.betAmount * 10;
+      tier = 'jackpot';
+    } else if (twoMatch) {
+      winAmount = Math.floor(this.betAmount * 2);
+      tier = 'partial';
+    }
+ 
+    this.balance += winAmount;
+ 
+    this.spinResult = {
+      isWin: winAmount > 0,
+      amount: winAmount,
+      symbols: `${r1} ${r2} ${r3}`,
+      tier
+    };
+  }
 }
