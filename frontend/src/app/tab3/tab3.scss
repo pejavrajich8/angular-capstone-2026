@@ -25,6 +25,43 @@
       margin: 0;
     }
   }
+
+  .bet-card {
+    text-align: center;
+
+    .bet-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin: 0 0 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .bet-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      margin-bottom: 8px;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .bet-range {
+      font-size: 11px;
+      opacity: 0.85;
+      margin: 0;
+      letter-spacing: 0.3px;
+    }
+  }
 }
 
 // Match tab4 background

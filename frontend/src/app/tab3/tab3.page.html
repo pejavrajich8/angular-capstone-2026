@@ -20,6 +20,18 @@
       <p class="balance-label">Balance</p>
       <p class="balance-amount">{{ balance | currency }}</p>
     </div>
+      <div class="bet-card">
+        <p class="bet-label">Bet Amount</p>
+        <input 
+          type="number" 
+          [(ngModel)]="betAmount"
+          (change)="betChange()"
+          [min]="minBet"
+          [max]="maxBet"
+          [disabled]="isSpinning"
+          class="bet-input" />
+        <p class="bet-range">Min: {{ minBet | currency }} | Max: {{ maxBet | currency }}</p>
+      </div>
   </div>
 
   <!-- Slots Machine -->
@@ -62,6 +74,7 @@
       [color]="balance >= betAmount ? 'primary' : 'medium'"
       [disabled]="isSpinning || balance < betAmount"
       (click)="spin()">
+      {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
     </ion-button>
   </div>
 </ion-content>
