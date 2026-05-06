@@ -34,7 +34,8 @@ export class LoginPage {
       await signInWithEmailAndPassword(this.auth, this.email, this.password);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
-      this.error = this.friendlyError(e.code);
+      console.error('[Auth] email sign-in error:', e.code, e.message);
+      this.error = this.friendlyError(e.code, e.message);
     } finally {
       this.loading = false;
     }
@@ -47,13 +48,14 @@ export class LoginPage {
       await signInWithPopup(this.auth, new GoogleAuthProvider());
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
-      this.error = this.friendlyError(e.code);
+      console.error('[Auth] Google sign-in error:', e.code, e.message);
+      this.error = this.friendlyError(e.code, e.message);
     } finally {
       this.loading = false;
     }
   }
 
-  private friendlyError(code: string): string {
+  private friendlyError(code: string, message?: string): string {
     switch (code) {
       case 'auth/invalid-credential':
       case 'auth/user-not-found':
@@ -63,8 +65,14 @@ export class LoginPage {
         return 'Too many attempts. Try again later.';
       case 'auth/popup-closed-by-user':
         return '';
+      case 'auth/configuration-not-found':
+        return 'Firebase Authentication is not enabled for this project. Enable it in the Firebase Console → Authentication → Get Started.';
+      case 'auth/network-request-failed':
+        return 'Network error. Check your connection and try again.';
+      case 'auth/operation-not-allowed':
+        return 'This sign-in method is not enabled. Enable it in the Firebase Console → Authentication → Sign-in method.';
       default:
-        return 'Sign-in failed. Please try again.';
+        return `Sign-in failed (${code ?? 'unknown'}). ${message ?? ''}`.trim();
     }
   }
 }
