@@ -1,0 +1,59 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title class="modak-regular" style="text-align: center;">Pajer Casino</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="login-container">
+    <img src="logo.png" alt="Logo" class="login-logo" />
+    <h2 class="gasoek-one-regular login-title">Welcome Back</h2>
+
+    <div class="login-form">
+      <ion-item>
+        <ion-label position="floating">Email</ion-label>
+        <ion-input
+          type="email"
+          [(ngModel)]="email"
+          (keyup.enter)="loginWithEmail()"
+          autocomplete="email"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Password</ion-label>
+        <ion-input
+          type="password"
+          [(ngModel)]="password"
+          (keyup.enter)="loginWithEmail()"
+          autocomplete="current-password"
+        ></ion-input>
+      </ion-item>
+
+      @if (error) {
+        <p class="login-error">{{ error }}</p>
+      }
+
+      <ion-button
+        expand="block"
+        class="login-btn"
+        [disabled]="loading"
+        (click)="loginWithEmail()"
+      >
+        {{ loading ? 'Signing in…' : 'Sign In' }}
+      </ion-button>
+
+      <div class="divider"><span>or</span></div>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="login-btn"
+        [disabled]="loading"
+        (click)="loginWithGoogle()"
+      >
+        Sign In with Google
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
