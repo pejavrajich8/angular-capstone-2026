@@ -9,6 +9,9 @@ import {
 import { addIcons } from 'ionicons';
 import { trophyOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 import { environment } from '../../environments/environment';
+import { Auth } from '@angular/fire/auth';
+import { Firestore, collection, doc, setDoc, deleteDoc, serverTimestamp } from '@angular/fire/firestore';
+import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 
 @Component({
   selector: 'app-tab4',
@@ -20,6 +23,7 @@ import { environment } from '../../environments/environment';
     IonSpinner,
     IonModal, IonBadge, IonChip, IonIcon,
     IonCard, IonCardContent,
+    LogoutButtonComponent,
   ],
 })
 export class Tab4Page implements OnInit {
@@ -44,7 +48,7 @@ export class Tab4Page implements OnInit {
     'golf',
   ]);
 
-  constructor(private zone: NgZone) {
+  constructor(private zone: NgZone, private auth: Auth, private firestore: Firestore) {
     addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline });
   }
 
@@ -118,11 +122,33 @@ const savedPicks = localStorage.getItem('picks');
     this.picks[event.id] = team;
     localStorage.setItem('picks', JSON.stringify(this.picks));
     console.log(`Pick placed: ${team} for event ${event.id}`);
+
+    const uid = this.auth.currentUser?.uid;
+    if (uid) {
+      const pickRef = doc(collection(this.firestore, 'sportsPicks'), `${uid}_${event.id}`);
+      setDoc(pickRef, {
+        uid,
+        eventId: event.id,
+        team,
+        sport: this.selectedSport,
+        home: event.home,
+        away: event.away,
+        league: event.league?.name ?? '',
+        eventDate: event.date ?? null,
+        timestamp: serverTimestamp(),
+      }).catch(err => console.error('Firestore pick save failed:', err));
+    }
   }
 
   removePick(eventId: string) {
     delete this.picks[eventId];
     localStorage.setItem('picks', JSON.stringify(this.picks));
+
+    const uid = this.auth.currentUser?.uid;
+    if (uid) {
+      const pickRef = doc(collection(this.firestore, 'sportsPicks'), `${uid}_${eventId}`);
+      deleteDoc(pickRef).catch(err => console.error('Firestore pick delete failed:', err));
+    }
   }
 
   initials(name: string): string {
