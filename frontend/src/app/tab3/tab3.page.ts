@@ -3,6 +3,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton } fr
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
+import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 
 @Component({
   selector: 'app-tab3',
@@ -17,7 +18,8 @@ import { CommonModule } from '@angular/common';
     FormsModule,
     CommonModule,
     IonButton,
-    CurrencyPipe
+    CurrencyPipe,
+    LogoutButtonComponent,
   ],
 })
 export class Tab3Page implements OnInit {
