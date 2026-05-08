@@ -19,8 +19,15 @@
     <div class="dealer-section">
       <h2 class="gasoek-one-regular">Dealer</h2>
       <div class="cards">
-        <img *ngIf="dealerCards.length > 0" [src]="dealerCards[0].image" alt="Card" class="card-image" />
+        <!-- Before the player stands, only show the dealer's up-card. After stand (or game end), reveal the full hand. -->
+        <ng-container *ngIf="revealDealerHand; else dealerUpCard">
+          <img *ngFor="let card of dealerCards" [src]="card.image" alt="Card" class="card-image" />
+        </ng-container>
+        <ng-template #dealerUpCard>
+          <img *ngIf="dealerCards.length > 0" [src]="dealerCards[0].image" alt="Card" class="card-image" />
+        </ng-template>
       </div>
+  <h2 class="gasoek-one-regular dealer-total">Total: {{ getHandValue(dealerCards) }}</h2>
     </div>
 
     <div class="player-section">
@@ -28,6 +35,7 @@
       <div class="cards">
         <img *ngFor="let card of playerCards" [src]="card.image" alt="Card" class="card-image" />
       </div>
+  <h2 class="gasoek-one-regular player-total">Total: {{ getHandValue(playerCards) }}</h2>
       <div class="button-group">
         <ion-button (click)="hitMe()" class="but">Hit</ion-button>
         <ion-button (click)="stand()" class="but">Stand</ion-button>
@@ -41,3 +49,5 @@
     </ion-toolbar>
   </ion-header>
 </ion-content>
+
+<!-- testing that Seth2 works -->
