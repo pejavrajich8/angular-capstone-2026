@@ -16,6 +16,7 @@ import { LogoutButtonComponent } from '../logout-button/logout-button.component'
   selector: 'app-tab1',
   standalone: true,
   templateUrl: 'tab1.page.html',
+  styleUrls: ['tab1.page.css'],
   imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, LogoutButtonComponent],
 })
 export class Tab1Page {
@@ -24,6 +25,8 @@ export class Tab1Page {
   playerCards: any[] = [];
   gameStarted: boolean = false;
   gameEnded: boolean = false;
+  revealDealerHand: boolean = false;
+  revealDealerScore: boolean = false;
 
   constructor(private http: HttpClient) {}
 
@@ -65,11 +68,14 @@ export class Tab1Page {
   }
 
   drawCards() {
-    // Draw 2 cards for dealer
-    this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
+    // Draw 1 cards for dealer
+    this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
       .subscribe((data: any) => {
         console.log('Dealer cards:', data.cards);
         this.dealerCards = data.cards;
+  // Keep dealer's full hand hidden until the player stands (or the game ends)
+  this.revealDealerHand = false;
+  this.revealDealerScore = false;
 
         // Draw 2 cards for player
         this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
@@ -106,6 +112,13 @@ export class Tab1Page {
     const playerValue = this.getHandValue(this.playerCards);
     console.log('Player stands with value:', playerValue);
 
+  // Reveal dealer's full hand now that the player has stood.
+  this.revealDealerHand = true;
+    this.revealDealerScore = false;
+    setTimeout(() => {
+      this.revealDealerScore = true;
+    }, 1000);
+
     // Dealer keeps drawing until 17 or higher
     const dealerDrawLoop = () => {
       const dealerValue = this.getHandValue(this.dealerCards);
@@ -116,7 +129,10 @@ export class Tab1Page {
         this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
           .subscribe((data: any) => {
             this.dealerCards.push(data.cards[0]);
-            dealerDrawLoop();
+            // Slow down the dealer so the user can see each card arrive.
+            setTimeout(() => {
+              dealerDrawLoop();
+            }, 1000);
           });
       } else {
         // Dealer stands, determine winner
@@ -130,6 +146,8 @@ export class Tab1Page {
   determineWinner(playerValue: number, dealerValue: number) {
     console.log('Final - Player:', playerValue, 'Dealer:', dealerValue);
     this.gameEnded = true;
+  this.revealDealerHand = true;
+  this.revealDealerScore = true;
 
     if (dealerValue > 21) {
       alert('Dealer Busted! You Win! Dealer: ' + dealerValue + ', You: ' + playerValue);
