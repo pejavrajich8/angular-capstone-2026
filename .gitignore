@@ -55,3 +55,15 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+frontend/www/
+
+# Firebase / local logs
+firebase-debug.log
+
+# Accidental nested build output (should never be committed)
+frontend/frontend/www/
+
+# Angular environment files (keep secrets out of git)
+/frontend/src/environments/environment.ts
+/frontend/src/environments/environment.prod.ts

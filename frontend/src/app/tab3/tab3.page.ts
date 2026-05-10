@@ -1,10 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonButton
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+import { CurrencyPipe } from '@angular/common'; 
 
 interface SpinResult {
   isWin: boolean;
@@ -19,6 +21,7 @@ interface SpinResult {
   templateUrl: 'tab3.page.html',
   styleUrl: 'tab3.scss',
   imports: [
+    CommonModule,
     IonHeader, 
     IonToolbar,
     IonTitle, 
@@ -26,7 +29,8 @@ interface SpinResult {
     IonButtons, 
     IonButton,
     FormsModule,
-    CommonModule
+    LogoutButtonComponent,
+    CurrencyPipe,
   ],
 })
 export class Tab3Page {
@@ -58,7 +62,6 @@ export class Tab3Page {
     this.spinResult = null;
     this.balance -= this.betAmount;
 
-    // Generate the final symbols that will be shown
     const finalSymbols: [string, string, string] = [
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
@@ -69,7 +72,6 @@ export class Tab3Page {
     this.animateReel(0, finalSymbols[0], this.SPIN_DURATIONS[0]);
     this.animateReel(1, finalSymbols[1], this.SPIN_DURATIONS[1]);
     this.animateReel(2, finalSymbols[2], this.SPIN_DURATIONS[2], () => {
-      // After the last reel stops, finish the spin
       this.finishSpin(finalSymbols);
     });
   }
