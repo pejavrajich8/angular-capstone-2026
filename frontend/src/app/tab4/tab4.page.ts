@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import { trophyOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 import { environment } from '../../environments/environment';
 import { Auth } from '@angular/fire/auth';
-import { Firestore, collection, doc, setDoc, deleteDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, getDocs, query, where, serverTimestamp } from '@angular/fire/firestore';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 
 @Component({
@@ -53,10 +53,33 @@ export class Tab4Page implements OnInit {
   }
 
   ngOnInit() {
-const savedPicks = localStorage.getItem('picks');
-    if (savedPicks) this.picks = JSON.parse(savedPicks);
     this.loadSports();
     this.loadEvents();
+    this.loadPicksFromFirestore();
+  }
+
+  async loadPicksFromFirestore() {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      const savedPicks = localStorage.getItem('picks');
+      if (savedPicks) this.picks = JSON.parse(savedPicks);
+      return;
+    }
+    try {
+      const q = query(collection(this.firestore, 'sportsPicks'), where('uid', '==', uid));
+      const snapshot = await getDocs(q);
+      const firestorePicks: Record<string, string> = {};
+      snapshot.forEach(d => {
+        const data = d.data();
+        firestorePicks[data['eventId']] = data['team'];
+      });
+      this.picks = firestorePicks;
+      localStorage.setItem('picks', JSON.stringify(this.picks));
+    } catch (err) {
+      console.error('Firestore picks load failed, falling back to localStorage:', err);
+      const savedPicks = localStorage.getItem('picks');
+      if (savedPicks) this.picks = JSON.parse(savedPicks);
+    }
   }
 
   loadSports() {

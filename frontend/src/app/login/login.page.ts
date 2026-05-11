@@ -2,36 +2,36 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonInput, IonItem, IonLabel,
-} from '@ionic/angular/standalone';
+  Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
+  setPersistence, browserLocalPersistence, browserSessionPersistence, UserCredential,
+} from '@angular/fire/auth';
+import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
+import { IonContent } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: 'login.page.html',
   styleUrl: 'login.page.css',
-  imports: [
-    CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, IonInput, IonItem, IonLabel,
-  ],
+  imports: [CommonModule, FormsModule, IonContent],
 })
 export class LoginPage {
   email = '';
   password = '';
   error = '';
   loading = false;
+  rememberMe = false;
 
-  constructor(private auth: Auth, private router: Router) {}
+  constructor(private auth: Auth, private firestore: Firestore, private router: Router) {}
 
   async loginWithEmail() {
     this.error = '';
     this.loading = true;
     try {
-      await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      await setPersistence(this.auth, this.rememberMe ? browserLocalPersistence : browserSessionPersistence);
+      const cred = await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      await this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] email sign-in error:', e.code, e.message);
@@ -45,7 +45,9 @@ export class LoginPage {
     this.error = '';
     this.loading = true;
     try {
-      await signInWithPopup(this.auth, new GoogleAuthProvider());
+      await setPersistence(this.auth, this.rememberMe ? browserLocalPersistence : browserSessionPersistence);
+      const cred = await signInWithPopup(this.auth, new GoogleAuthProvider());
+      await this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] Google sign-in error:', e.code, e.message);
@@ -53,6 +55,17 @@ export class LoginPage {
     } finally {
       this.loading = false;
     }
+  }
+
+  private async saveUserDoc(cred: UserCredential) {
+    const { uid, email, displayName, photoURL } = cred.user;
+    await setDoc(doc(this.firestore, 'users', uid), {
+      uid,
+      email,
+      displayName: displayName ?? email?.split('@')[0] ?? 'Player',
+      photoURL: photoURL ?? null,
+      lastLogin: serverTimestamp(),
+    }, { merge: true });
   }
 
   private friendlyError(code: string, message?: string): string {
