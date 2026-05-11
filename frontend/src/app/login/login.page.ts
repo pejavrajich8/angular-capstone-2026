@@ -3,21 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
-import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonInput, IonItem, IonLabel,
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: 'login.page.html',
   styleUrl: 'login.page.css',
-  imports: [
-    CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, IonInput, IonItem, IonLabel,
-  ],
+  imports: [CommonModule, FormsModule, IonContent],
 })
 export class LoginPage {
   email = '';
