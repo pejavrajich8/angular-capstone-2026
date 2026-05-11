@@ -85,6 +85,24 @@
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
 }
 
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8a8aa0;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #7c3aed;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .login-error {
   color: #ff6b6b;
   font-size: 13px;
