@@ -12,6 +12,8 @@ import { environment } from '../../environments/environment';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, collection, doc, setDoc, deleteDoc, getDocs, query, where, serverTimestamp } from '@angular/fire/firestore';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+import { CurrencyService } from '../services/currency.service';
+import { CurrencyDisplayComponent } from '../components/currency-display/currency-display.component';
 
 interface Score {
   homeScore: number | null;
@@ -29,6 +31,7 @@ interface Score {
     IonSpinner, IonModal, IonBadge, IonChip, IonIcon,
     IonCard, IonCardContent,
     LogoutButtonComponent,
+    CurrencyDisplayComponent,
   ],
 })
 export class Tab4Page implements OnInit {
@@ -44,6 +47,8 @@ export class Tab4Page implements OnInit {
   loadingOdds = false;
   pendingTeam: string | null = null;
   betAmount: number | null = null;
+  balance = 0;
+  betError = '';
 
   limit = 200;
 
@@ -58,7 +63,12 @@ export class Tab4Page implements OnInit {
     'golf',
   ]);
 
-  constructor(private zone: NgZone, private auth: Auth, private firestore: Firestore) {
+  constructor(
+    private zone: NgZone,
+    private auth: Auth,
+    private firestore: Firestore,
+    private currencyService: CurrencyService,
+  ) {
     addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline, closeCircle });
   }
 
@@ -66,7 +76,8 @@ export class Tab4Page implements OnInit {
     this.loadSports();
     this.loadEvents();
     this.loadPicksFromFirestore();
-    this.loadScores();
+    this.balance = this.currencyService.getCurrentBalance();
+    this.currencyService.currency$.subscribe(b => this.zone.run(() => this.balance = b));
   }
 
   private getCache<T>(key: string, ttlMs: number): T | null {
@@ -103,12 +114,13 @@ export class Tab4Page implements OnInit {
     this.loading = true;
     this.events = [];
     this.selectedEvent = null;
-    const TTL = 5 * 60 * 1000; // 5 minutes
+    const TTL = 5 * 60 * 1000; // 5 minutes — short enough to pick up live score updates
     const cacheKey = `cache:events:${this.selectedSport}:${this.limit}`;
     const cached = this.getCache<any[]>(cacheKey, TTL);
     if (cached) {
       this.zone.run(() => {
         this.events = cached.filter((e: any) => e.league?.name?.startsWith('USA'));
+        this.parseScoresFromEvents(this.events);
         this.loading = false;
       });
       return;
@@ -117,30 +129,24 @@ export class Tab4Page implements OnInit {
       .then(r => r.json())
       .then(data => this.zone.run(() => {
         this.events = data.filter((e: any) => e.league?.name?.startsWith('USA'));
+        this.parseScoresFromEvents(data); // parse from full list before filtering
         this.loading = false;
         this.setCache(cacheKey, data);
       }))
       .catch(err => this.zone.run(() => { console.error('Error fetching events:', err); this.loading = false; }));
   }
 
-  async loadScores() {
-    try {
-      const data = await fetch(`${environment.apiBaseUrl}/api/scores?sport=${this.selectedSport}`).then(r => r.json());
-      if (!Array.isArray(data)) return;
-      const map: Record<string, Score> = {};
-      data.forEach((s: any) => {
-        const id = s.id ?? s.eventId;
-        if (!id) return;
-        map[id] = {
-          homeScore: s.homeScore ?? s.home_score ?? s.scores?.home ?? null,
-          awayScore: s.awayScore ?? s.away_score ?? s.scores?.away ?? null,
-          status: s.status ?? 'scheduled',
-        };
-      });
-      this.zone.run(() => { this.scores = map; });
-    } catch (err) {
-      console.error('Failed to load scores:', err);
-    }
+  private parseScoresFromEvents(events: any[]) {
+    const map: Record<string, Score> = { ...this.scores };
+    events.forEach((e: any) => {
+      if (!e.id) return;
+      map[e.id] = {
+        homeScore: e.scores?.home ?? null,
+        awayScore: e.scores?.away ?? null,
+        status: e.status ?? 'scheduled',
+      };
+    });
+    this.scores = map;
   }
 
   async loadPicksFromFirestore() {
@@ -170,7 +176,6 @@ export class Tab4Page implements OnInit {
   selectSport(slug: string) {
     this.selectedSport = slug;
     this.loadEvents();
-    this.loadScores();
   }
 
   openBetModal(event: any) {
@@ -211,8 +216,18 @@ export class Tab4Page implements OnInit {
     return Math.round(win * 100) / 100;
   }
 
-  confirmBet() {
+  async confirmBet() {
+    this.betError = '';
     if (!this.pendingTeam || !this.betAmount || this.betAmount <= 0) return;
+    if (this.betAmount > this.balance) {
+      this.betError = 'Insufficient balance.';
+      return;
+    }
+    const success = await this.currencyService.spendCurrency(this.betAmount, 'sports_bet');
+    if (!success) {
+      this.betError = 'Failed to place bet. Try again.';
+      return;
+    }
     const potentialWin = this.calcPotentialWin();
     const odds = this.getPendingOdds();
     this.placePick(this.selectedEvent, this.pendingTeam, this.betAmount, odds, potentialWin);
@@ -277,12 +292,12 @@ export class Tab4Page implements OnInit {
 
   isLive(event: any): boolean {
     const s = this.scores[event.id];
-    return s?.status === 'in_progress' || s?.status === 'live';
+    return s?.status === 'live' || s?.status === 'in_progress' || s?.status === 'inprogress';
   }
 
   isCompleted(event: any): boolean {
     const s = this.scores[event.id];
-    if (s) return ['finished', 'completed', 'closed', 'final'].includes(s.status);
+    if (s) return ['settled', 'cancelled', 'finished', 'completed', 'closed', 'final'].includes(s.status);
     return event.date ? new Date(event.date) < new Date() : false;
   }
 
@@ -315,6 +330,7 @@ export class Tab4Page implements OnInit {
         betAmount: betAmount ?? null,
         odds: odds ?? null,
         potentialWin: potentialWin ?? null,
+        settled: false,
         timestamp: serverTimestamp(),
       }).catch(err => console.error('Firestore pick save failed:', err));
     }

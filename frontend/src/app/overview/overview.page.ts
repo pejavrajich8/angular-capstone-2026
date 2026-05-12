@@ -7,9 +7,10 @@ import {
 import { addIcons } from 'ionicons';
 import { trophyOutline, checkmarkCircle, closeCircle, timeOutline } from 'ionicons/icons';
 import { Auth } from '@angular/fire/auth';
-import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, query, where, doc, updateDoc } from '@angular/fire/firestore';
 import { environment } from '../../environments/environment';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+import { CurrencyService } from '../services/currency.service';
 
 interface Pick {
   eventId: string;
@@ -22,6 +23,8 @@ interface Pick {
   betAmount: number | null;
   odds: number | null;
   potentialWin: number | null;
+  settled: boolean;
+  uid: string;
 }
 
 interface Score {
@@ -46,14 +49,36 @@ export class OverviewPage implements OnInit {
   scores: Record<string, Score> = {};
   loading = true;
 
-  constructor(private auth: Auth, private firestore: Firestore) {
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore,
+    private currencyService: CurrencyService,
+  ) {
     addIcons({ trophyOutline, checkmarkCircle, closeCircle, timeOutline });
   }
 
   async ngOnInit() {
     await this.loadPicks();
     await this.loadScores();
+    await this.settleWins();
     this.loading = false;
+  }
+
+  async settleWins() {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) return;
+    const unsettledWins = this.picks.filter(p =>
+      !p.settled && p.betAmount && p.potentialWin && this.getResult(p) === 'win'
+    );
+    await Promise.all(unsettledWins.map(async pick => {
+      const payout = (pick.betAmount ?? 0) + (pick.potentialWin ?? 0);
+      const credited = await this.currencyService.addCurrency(payout, 'sports_win');
+      if (credited) {
+        const pickRef = doc(this.firestore, 'sportsPicks', `${uid}_${pick.eventId}`);
+        await updateDoc(pickRef, { settled: true }).catch(console.error);
+        pick.settled = true;
+      }
+    }));
   }
 
   async loadPicks() {
@@ -77,33 +102,32 @@ export class OverviewPage implements OnInit {
     const sports = [...new Set(this.picks.map(p => p.sport).filter(Boolean))];
     await Promise.all(sports.map(async sport => {
       try {
-        const data = await fetch(`${environment.apiBaseUrl}/api/scores?sport=${sport}`).then(r => r.json());
+        const data = await fetch(`${environment.apiBaseUrl}/api/events?sport=${sport}&limit=200`).then(r => r.json());
         if (!Array.isArray(data)) return;
-        data.forEach((s: any) => {
-          const id = s.id ?? s.eventId;
-          if (!id) return;
-          this.scores[id] = {
-            homeScore: s.homeScore ?? s.home_score ?? s.scores?.home ?? null,
-            awayScore: s.awayScore ?? s.away_score ?? s.scores?.away ?? null,
-            status: s.status ?? 'scheduled',
+        data.forEach((e: any) => {
+          if (!e.id) return;
+          this.scores[e.id] = {
+            homeScore: e.scores?.home ?? null,
+            awayScore: e.scores?.away ?? null,
+            status: e.status ?? 'scheduled',
           };
         });
       } catch (err) {
-        console.error(`Failed to load scores for ${sport}:`, err);
+        console.error(`Failed to load events for ${sport}:`, err);
       }
     }));
   }
 
   isCompleted(pick: Pick): boolean {
     const s = this.scores[pick.eventId];
-    if (s) return ['finished', 'completed', 'closed', 'final'].includes(s.status);
+    if (s) return ['settled', 'cancelled', 'finished', 'completed', 'closed', 'final'].includes(s.status);
     const date = pick.eventDate?.toDate?.() ?? new Date(pick.eventDate ?? 0);
     return date < new Date();
   }
 
   isLive(pick: Pick): boolean {
     const s = this.scores[pick.eventId];
-    return s?.status === 'in_progress' || s?.status === 'live';
+    return s?.status === 'live' || s?.status === 'in_progress' || s?.status === 'inprogress';
   }
 
   getResult(pick: Pick): 'win' | 'loss' | 'pending' | 'live' | 'final' {

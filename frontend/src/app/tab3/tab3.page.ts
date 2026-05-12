@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
@@ -7,12 +7,21 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
-import { CurrencyPipe } from '@angular/common'; 
+import { CurrencyPipe } from '@angular/common';
+import { CurrencyService } from '../services/currency.service';
+import { CurrencyDisplayComponent } from '../components/currency-display/currency-display.component';
+
+interface Symbol {
+  id: string;
+  type: 'image' | 'emoji';
+  value: string; // filename for images, emoji character for emojis
+  display: string; // display name
+}
 
 interface SpinResult {
   isWin: boolean;
   amount: number;
-  symbols: string;
+  symbols: Symbol[];
   tier: 'jackpot' | 'partial' | 'loss';
 }
 
@@ -32,25 +41,45 @@ interface SpinResult {
     FormsModule,
     LogoutButtonComponent,
     CurrencyPipe,
+    CurrencyDisplayComponent,
   ],
 })
-export class Tab3Page {
-  symbols: string[] = ['big-P.png', '🍊', '🍋', '🔔', '💎', '🍀'];
-  displaySymbols: [string, string, string] = ['big-P.png', 'big-P.png', 'big-P.png'];
+export class Tab3Page implements OnInit {
+  symbols: Symbol[] = [
+    { id: 'p', type: 'image', value: '/icons/big-P.png', display: 'P Logo' },
+    { id: 'doink', type: 'image', value: '/icons/doink.png', display: 'Doink' },
+    { id: 'lemon', type: 'emoji', value: '🍋', display: 'Lemon' },
+    { id: 'bell', type: 'emoji', value: '🔔', display: 'Bell' },
+    { id: 'diamond', type: 'emoji', value: '💎', display: 'Diamond' },
+    { id: 'clover', type: 'emoji', value: '🍀', display: 'Clover' },
+  ];
+  displaySymbols: [Symbol, Symbol, Symbol] = [
+    this.symbols[0],
+    this.symbols[0],
+    this.symbols[0]
+  ];
   betAmount: number = 10;
   spinResult: SpinResult | null = null;
-  balance: number = 1000; 
+  balance: number = 0;
   isSpinning: boolean = false;
-  image: HTMLImageElement = (() => {
-    const img = new Image();
-    img.src = 'frontend/public/icons/big-P.png';
-    return img;
-  })();
 
   private readonly Max_Spins: number = 50;
   private readonly SPIN_DURATIONS = [1200, 1600, 2000];
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private currencyService: CurrencyService
+  ) {}
+
+  ngOnInit() {
+    // Load user's balance from Firebase
+    this.balance = this.currencyService.getCurrentBalance();
+    
+    // Subscribe to balance updates
+    this.currencyService.currency$.subscribe(newBalance => {
+      this.balance = newBalance;
+    });
+  }
 
   get minBet(): number {
     return 1;
@@ -62,15 +91,22 @@ export class Tab3Page {
     this.betAmount = Math.max(this.minBet, Math.min(this.maxBet, this.betAmount || this.minBet));
   }
 
-  spin() {
+  async spin() {
     if (this.isSpinning || this.balance < this.betAmount || this.betAmount <= 0) {
       return;
     }
+
+    // Deduct bet from Firebase
+    const success = await this.currencyService.spendCurrency(this.betAmount, 'slots_bet');
+    if (!success) {
+      console.error('Failed to place bet');
+      return;
+    }
+
     this.isSpinning = true;
     this.spinResult = null;
-    this.balance -= this.betAmount;
 
-    const finalSymbols: [string, string, string] = [
+    const finalSymbols: [Symbol, Symbol, Symbol] = [
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
       this.symbols[Math.floor(Math.random() * this.symbols.length)]
@@ -86,7 +122,7 @@ export class Tab3Page {
 
   private animateReel(
     index: 0 | 1 | 2,
-    finalSymbol: string,
+    finalSymbol: Symbol,
     duration: number,
     onComplete?: () => void
   ) {
@@ -97,11 +133,9 @@ export class Tab3Page {
       const progress = elapsed / duration;
 
       if (progress < 1) {
-        // Show random symbol while spinning
         this.displaySymbols[index] = this.symbols[Math.floor(Math.random() * this.symbols.length)];
         requestAnimationFrame(tick);
       } else {
-        // Snap to the final symbol
         this.displaySymbols[index] = finalSymbol;
         onComplete?.();
       }
@@ -110,10 +144,10 @@ export class Tab3Page {
     requestAnimationFrame(tick);
   }
 
-  private finishSpin(symbols: [string, string, string]) {
+  private async finishSpin(symbols: [Symbol, Symbol, Symbol]) {
     const [r1, r2, r3] = symbols;
-    const allMatch = r1 === r2 && r2 === r3;
-    const twoMatch = r1 === r2 || r2 === r3 || r1 === r3;
+    const allMatch = r1.id === r2.id && r2.id === r3.id;
+    const twoMatch = r1.id === r2.id || r2.id === r3.id || r1.id === r3.id;
  
     let winAmount = 0;
     let tier: SpinResult['tier'] = 'loss';
@@ -125,13 +159,14 @@ export class Tab3Page {
       winAmount = Math.floor(this.betAmount * 2);
       tier = 'partial';
     }
- 
-    this.balance += winAmount;
+     if (winAmount > 0) {
+      await this.currencyService.addCurrency(winAmount, 'slots_win');
+    }
  
     this.spinResult = {
       isWin: winAmount > 0,
       amount: winAmount,
-      symbols: `${r1} ${r2} ${r3}`,
+      symbols: [r1, r2, r3],
       tier
     };
     this.isSpinning = false;
@@ -142,3 +177,4 @@ export class Tab3Page {
   }
 
 }
+
