@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonButton
@@ -34,15 +35,22 @@ interface SpinResult {
   ],
 })
 export class Tab3Page {
-  symbols: string[] = ['🍎', '🍊', '🍋', '🍌', '🍇', '🍓'];
-  displaySymbols: [string, string, string] = ['🍎', '🍎', '🍎'];
+  symbols: string[] = ['big-P.png', '🍊', '🍋', '🔔', '💎', '🍀'];
+  displaySymbols: [string, string, string] = ['big-P.png', 'big-P.png', 'big-P.png'];
   betAmount: number = 10;
   spinResult: SpinResult | null = null;
   balance: number = 1000; 
   isSpinning: boolean = false;
+  image: HTMLImageElement = (() => {
+    const img = new Image();
+    img.src = 'frontend/public/icons/big-P.png';
+    return img;
+  })();
 
   private readonly Max_Spins: number = 50;
   private readonly SPIN_DURATIONS = [1200, 1600, 2000];
+
+  constructor(private sanitizer: DomSanitizer) {}
 
   get minBet(): number {
     return 1;
@@ -129,5 +137,8 @@ export class Tab3Page {
     this.isSpinning = false;
   }
 
-  
+  getSafeImageUrl(url: string): SafeUrl {
+    return this.sanitizer.bypassSecurityTrustUrl(url);
+  }
+
 }

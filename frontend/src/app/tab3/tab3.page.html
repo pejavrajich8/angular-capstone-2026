@@ -43,21 +43,36 @@
       <!-- Reel 1 -->
       <div class="reel-container">
         <div class="reel" >
-          <div class="reel-item">{{ displaySymbols[0] }}</div>
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[0].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[0])" [alt]="displaySymbols[0]" />
+            </div>
+            <div *ngIf="!displaySymbols[0].endsWith('.png')">{{ displaySymbols[0] }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Reel 2 -->
       <div class="reel-container">
         <div class="reel" >
-          <div class="reel-item">{{ displaySymbols[1] }}</div>
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[1].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[1])" [alt]="displaySymbols[1]" />
+            </div>
+            <div *ngIf="!displaySymbols[1].endsWith('.png')">{{ displaySymbols[1] }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Reel 3 -->
       <div class="reel-container">
         <div class="reel" >
-          <div class="reel-item">{{ displaySymbols[2] }}</div>
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[2].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[2])" [alt]="displaySymbols[2]" />
+            </div>
+            <div *ngIf="!displaySymbols[2].endsWith('.png')">{{ displaySymbols[2] }}</div>
+          </div>
         </div>
       </div>
     </div>
