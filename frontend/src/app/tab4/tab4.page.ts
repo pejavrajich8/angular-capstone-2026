@@ -1,5 +1,5 @@
 import { Component, NgZone, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
@@ -7,21 +7,26 @@ import {
   IonCard, IonCardContent,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { trophyOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
+import { trophyOutline, checkmarkCircle, checkmarkCircleOutline, closeCircle } from 'ionicons/icons';
 import { environment } from '../../environments/environment';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, collection, doc, setDoc, deleteDoc, getDocs, query, where, serverTimestamp } from '@angular/fire/firestore';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+
+interface Score {
+  homeScore: number | null;
+  awayScore: number | null;
+  status: string;
+}
 
 @Component({
   selector: 'app-tab4',
   templateUrl: 'tab4.page.html',
   styleUrl: 'tab4.page.scss',
   imports: [
-    FormsModule, DatePipe,
+    FormsModule, DatePipe, DecimalPipe,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-    IonSpinner,
-    IonModal, IonBadge, IonChip, IonIcon,
+    IonSpinner, IonModal, IonBadge, IonChip, IonIcon,
     IonCard, IonCardContent,
     LogoutButtonComponent,
   ],
@@ -34,6 +39,11 @@ export class Tab4Page implements OnInit {
   modalOpen = false;
   loading = false;
   picks: Record<string, string> = {};
+  scores: Record<string, Score> = {};
+  selectedEventOdds: { home: number | null; away: number | null } = { home: null, away: null };
+  loadingOdds = false;
+  pendingTeam: string | null = null;
+  betAmount: number | null = null;
 
   limit = 200;
 
@@ -49,13 +59,88 @@ export class Tab4Page implements OnInit {
   ]);
 
   constructor(private zone: NgZone, private auth: Auth, private firestore: Firestore) {
-    addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline });
+    addIcons({ trophyOutline, checkmarkCircle, checkmarkCircleOutline, closeCircle });
   }
 
   ngOnInit() {
     this.loadSports();
     this.loadEvents();
     this.loadPicksFromFirestore();
+    this.loadScores();
+  }
+
+  private getCache<T>(key: string, ttlMs: number): T | null {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > ttlMs) { localStorage.removeItem(key); return null; }
+      return data as T;
+    } catch { return null; }
+  }
+
+  private setCache(key: string, data: unknown) {
+    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+  }
+
+  loadSports() {
+    const TTL = 24 * 60 * 60 * 1000; // 24 hours
+    const cached = this.getCache<any[]>('cache:sports', TTL);
+    if (cached) {
+      this.sports = cached.filter((s: { slug: string }) => this.americanSports.has(s.slug));
+      return;
+    }
+    fetch(`${environment.apiBaseUrl}/api/sports`)
+      .then(r => r.json())
+      .then(data => this.zone.run(() => {
+        this.sports = data.filter((s: { slug: string }) => this.americanSports.has(s.slug));
+        this.setCache('cache:sports', data);
+      }))
+      .catch(err => console.error('Error fetching sports:', err));
+  }
+
+  loadEvents() {
+    this.loading = true;
+    this.events = [];
+    this.selectedEvent = null;
+    const TTL = 5 * 60 * 1000; // 5 minutes
+    const cacheKey = `cache:events:${this.selectedSport}:${this.limit}`;
+    const cached = this.getCache<any[]>(cacheKey, TTL);
+    if (cached) {
+      this.zone.run(() => {
+        this.events = cached.filter((e: any) => e.league?.name?.startsWith('USA'));
+        this.loading = false;
+      });
+      return;
+    }
+    fetch(`${environment.apiBaseUrl}/api/events?sport=${this.selectedSport}&limit=${this.limit}`)
+      .then(r => r.json())
+      .then(data => this.zone.run(() => {
+        this.events = data.filter((e: any) => e.league?.name?.startsWith('USA'));
+        this.loading = false;
+        this.setCache(cacheKey, data);
+      }))
+      .catch(err => this.zone.run(() => { console.error('Error fetching events:', err); this.loading = false; }));
+  }
+
+  async loadScores() {
+    try {
+      const data = await fetch(`${environment.apiBaseUrl}/api/scores?sport=${this.selectedSport}`).then(r => r.json());
+      if (!Array.isArray(data)) return;
+      const map: Record<string, Score> = {};
+      data.forEach((s: any) => {
+        const id = s.id ?? s.eventId;
+        if (!id) return;
+        map[id] = {
+          homeScore: s.homeScore ?? s.home_score ?? s.scores?.home ?? null,
+          awayScore: s.awayScore ?? s.away_score ?? s.scores?.away ?? null,
+          status: s.status ?? 'scheduled',
+        };
+      });
+      this.zone.run(() => { this.scores = map; });
+    } catch (err) {
+      console.error('Failed to load scores:', err);
+    }
   }
 
   async loadPicksFromFirestore() {
@@ -82,55 +167,100 @@ export class Tab4Page implements OnInit {
     }
   }
 
-  loadSports() {
-    const cached = localStorage.getItem('cache:sports');
-    if (cached) {
-      console.log('Sports loaded from cache');
-      this.sports = JSON.parse(cached).filter((s: { slug: string }) => this.americanSports.has(s.slug));
-      return;
-    }
-    console.log('Fetching sports...');
-  fetch(`${environment.apiBaseUrl}/api/sports`)
-      .then(r => r.json())
-      .then(data => this.zone.run(() => {
-        console.log('Sports loaded:', data);
-        this.sports = data.filter((s: { slug: string }) => this.americanSports.has(s.slug));
-        localStorage.setItem('cache:sports', JSON.stringify(this.sports));
-      }))
-      .catch(err => console.error('Error fetching sports:', err));
-  }
-
-  loadEvents() {
-    this.loading = true;
-    this.events = [];
-    this.selectedEvent = null;
-    const cacheKey = `cache:events:${this.selectedSport}:${this.limit}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      console.log(`Events loaded from cache for sport: ${this.selectedSport}`);
-      this.zone.run(() => { this.events = JSON.parse(cached).filter((e: any) => e.league?.name?.startsWith('USA')); this.loading = false; });
-      return;
-    }
-    console.log(`Fetching events for sport: ${this.selectedSport}...`);
-  fetch(`${environment.apiBaseUrl}/api/events?sport=${this.selectedSport}&limit=${this.limit}`)
-      .then(r => r.json())
-      .then(data => this.zone.run(() => {
-        console.log('Events loaded:', data);
-        this.events = data.filter((e: any) => e.league?.name?.startsWith('USA'));
-        this.loading = false;
-        localStorage.setItem(cacheKey, JSON.stringify(this.events));
-      }))
-      .catch(err => this.zone.run(() => { console.error('Error fetching events:', err); this.loading = false; }));
-  }
-
   selectSport(slug: string) {
     this.selectedSport = slug;
     this.loadEvents();
+    this.loadScores();
   }
 
   openBetModal(event: any) {
     this.selectedEvent = event;
+    this.selectedEventOdds = { home: null, away: null };
+    this.pendingTeam = this.picks[event.id] ?? null;
+    this.betAmount = null;
     this.modalOpen = true;
+    this.fetchOdds(event.id);
+  }
+
+  selectTeam(team: string) {
+    if (this.isCompleted(this.selectedEvent)) return;
+    this.pendingTeam = team;
+    this.betAmount = null;
+  }
+
+  getPendingOdds(): number | null {
+    if (!this.pendingTeam || !this.selectedEvent) return null;
+    return this.pendingTeam === this.selectedEvent.home
+      ? this.selectedEventOdds.home
+      : this.selectedEventOdds.away;
+  }
+
+  calcPotentialWin(): number | null {
+    const odds = this.getPendingOdds();
+    if (odds === null || !this.betAmount || this.betAmount <= 0) return null;
+    // Convert decimal odds to American if needed (same logic as formatOdds)
+    let american = odds;
+    if (odds > 0 && odds < 20) {
+      american = odds >= 2
+        ? Math.round((odds - 1) * 100)
+        : Math.round(-100 / (odds - 1));
+    }
+    const win = american > 0
+      ? this.betAmount * (american / 100)
+      : this.betAmount * (100 / Math.abs(american));
+    return Math.round(win * 100) / 100;
+  }
+
+  confirmBet() {
+    if (!this.pendingTeam || !this.betAmount || this.betAmount <= 0) return;
+    const potentialWin = this.calcPotentialWin();
+    const odds = this.getPendingOdds();
+    this.placePick(this.selectedEvent, this.pendingTeam, this.betAmount, odds, potentialWin);
+  }
+
+  async fetchOdds(eventId: string) {
+    this.loadingOdds = true;
+    try {
+      const data = await fetch(`${environment.apiBaseUrl}/api/odds?eventId=${eventId}`).then(r => r.json());
+      this.zone.run(() => {
+        this.selectedEventOdds = this.parseOdds(data);
+        this.loadingOdds = false;
+      });
+    } catch (e) {
+      console.error('Failed to load odds:', e);
+      this.zone.run(() => { this.loadingOdds = false; });
+    }
+  }
+
+  private parseOdds(data: any): { home: number | null; away: number | null } {
+    try {
+      const bookmakers: any[] = Array.isArray(data) ? data : (data.bookmakers ?? data.data ?? []);
+      if (!bookmakers.length) return { home: null, away: null };
+      const bk = bookmakers[0];
+      const markets: any[] = bk.markets ?? bk.odds ?? [];
+      const ml = markets.find((m: any) =>
+        ['moneyline', 'h2h', '1x2', 'money_line'].includes((m.name ?? m.type ?? '').toLowerCase())
+      ) ?? markets[0];
+      if (!ml) return { home: null, away: null };
+      const outcomes: any[] = ml.outcomes ?? ml.selections ?? [];
+      const homeOdds = outcomes.find((o: any) => o.name === this.selectedEvent?.home || o.label === 'home')?.odds ?? outcomes[0]?.odds ?? null;
+      const awayOdds = outcomes.find((o: any) => o.name === this.selectedEvent?.away || o.label === 'away')?.odds ?? outcomes[1]?.odds ?? null;
+      return { home: homeOdds, away: awayOdds };
+    } catch {
+      return { home: null, away: null };
+    }
+  }
+
+  formatOdds(odds: number | null): string {
+    if (odds === null || odds === undefined) return '';
+    // Convert decimal odds to American if needed
+    if (odds > 0 && odds < 20) {
+      const american = odds >= 2
+        ? Math.round((odds - 1) * 100)
+        : Math.round(-100 / (odds - 1));
+      return american > 0 ? `+${american}` : `${american}`;
+    }
+    return odds > 0 ? `+${odds}` : `${odds}`;
   }
 
   closeModal() {
@@ -141,10 +271,34 @@ export class Tab4Page implements OnInit {
     return this.picks[eventId] ?? null;
   }
 
-  placePick(event: any, team: string) {
+  getScore(eventId: string): Score | null {
+    return this.scores[eventId] ?? null;
+  }
+
+  isLive(event: any): boolean {
+    const s = this.scores[event.id];
+    return s?.status === 'in_progress' || s?.status === 'live';
+  }
+
+  isCompleted(event: any): boolean {
+    const s = this.scores[event.id];
+    if (s) return ['finished', 'completed', 'closed', 'final'].includes(s.status);
+    return event.date ? new Date(event.date) < new Date() : false;
+  }
+
+  getPickResult(event: any): 'win' | 'loss' | null {
+    const pick = this.getPick(event.id);
+    const score = this.scores[event.id];
+    if (!pick || !score || score.homeScore === null || score.awayScore === null) return null;
+    if (!this.isCompleted(event)) return null;
+    const homeWon = score.homeScore > score.awayScore;
+    return (pick === event.home && homeWon) || (pick === event.away && !homeWon) ? 'win' : 'loss';
+  }
+
+  placePick(event: any, team: string, betAmount: number | null = null, odds: number | null = null, potentialWin: number | null = null) {
     this.picks[event.id] = team;
     localStorage.setItem('picks', JSON.stringify(this.picks));
-    console.log(`Pick placed: ${team} for event ${event.id}`);
+    this.closeModal();
 
     const uid = this.auth.currentUser?.uid;
     if (uid) {
@@ -158,6 +312,9 @@ export class Tab4Page implements OnInit {
         away: event.away,
         league: event.league?.name ?? '',
         eventDate: event.date ?? null,
+        betAmount: betAmount ?? null,
+        odds: odds ?? null,
+        potentialWin: potentialWin ?? null,
         timestamp: serverTimestamp(),
       }).catch(err => console.error('Firestore pick save failed:', err));
     }

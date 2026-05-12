@@ -1,0 +1,133 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <img src="logo.png" alt="Logo" style="height: 48px; width: 48px; margin-left: 8px; border-radius: 12px; object-fit: cover;" />
+    </ion-buttons>
+    <ion-title>My Bets</ion-title>
+    <ion-buttons slot="end">
+      <app-logout-button />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  @if (loading) {
+    <div class="spinner-wrap">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading your bets…</p>
+    </div>
+  }
+
+  @if (!loading) {
+
+    <!-- Summary cards -->
+    <div class="summary-grid">
+      <div class="stat-card">
+        <span class="stat-label">Record</span>
+        <span class="stat-value record">
+          <span class="wins">{{ wins }}W</span>
+          <span class="sep"> – </span>
+          <span class="losses">{{ losses }}L</span>
+        </span>
+        <span class="stat-sub">{{ pending }} pending</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Total Wagered</span>
+        <span class="stat-value">${{ totalWagered | number:'1.2-2' }}</span>
+        <span class="stat-sub">across {{ picks.length }} bets</span>
+      </div>
+
+      <div class="stat-card highlight">
+        <span class="stat-label">To Win</span>
+        <span class="stat-value win-value">+${{ totalPotentialWin | number:'1.2-2' }}</span>
+        <span class="stat-sub">on active picks</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Total Won</span>
+        <span class="stat-value" [class.win-value]="totalWon > 0">${{ totalWon | number:'1.2-2' }}</span>
+        <span class="stat-sub">settled bets</span>
+      </div>
+    </div>
+
+    <!-- Picks list -->
+    @if (picks.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="trophy-outline" class="empty-icon"></ion-icon>
+        <p>No bets yet.</p>
+        <p class="empty-sub">Head to the Sports Book tab to place your first pick.</p>
+      </div>
+    }
+
+    <div class="picks-list">
+      @for (pick of picks; track pick.eventId) {
+        <div class="pick-card" [class.pick-win]="getResult(pick) === 'win'" [class.pick-loss]="getResult(pick) === 'loss'" [class.pick-live]="getResult(pick) === 'live'">
+
+          <!-- Header row -->
+          <div class="pick-header">
+            <div class="pick-league">
+              <ion-icon name="trophy-outline"></ion-icon>
+              <span>{{ pick.league }}</span>
+            </div>
+            <div class="pick-status-badge">
+              @if (getResult(pick) === 'win') {
+                <ion-badge color="success">WIN</ion-badge>
+              } @else if (getResult(pick) === 'loss') {
+                <ion-badge color="danger">LOSS</ion-badge>
+              } @else if (getResult(pick) === 'live') {
+                <ion-badge class="badge-live">LIVE</ion-badge>
+              } @else if (getResult(pick) === 'final') {
+                <ion-badge color="warning">FINAL</ion-badge>
+              } @else {
+                <ion-badge color="medium">PENDING</ion-badge>
+              }
+            </div>
+          </div>
+
+          <!-- Matchup row -->
+          <div class="pick-matchup">
+            <span class="matchup-team" [class.picked-team]="pick.team === pick.home">{{ pick.home }}</span>
+            @if (getScore(pick.eventId); as score) {
+              <span class="matchup-score">{{ score.homeScore ?? '–' }} – {{ score.awayScore ?? '–' }}</span>
+            } @else {
+              <span class="matchup-vs">VS</span>
+            }
+            <span class="matchup-team right" [class.picked-team]="pick.team === pick.away">{{ pick.away }}</span>
+          </div>
+
+          <!-- Pick details row -->
+          <div class="pick-details">
+            <div class="pick-detail">
+              <span class="detail-label">Your pick</span>
+              <span class="detail-value pick-team-name">{{ pick.team }}</span>
+            </div>
+            <div class="pick-detail">
+              <span class="detail-label">Odds</span>
+              <span class="detail-value">{{ formatOdds(pick.odds) }}</span>
+            </div>
+            <div class="pick-detail">
+              <span class="detail-label">Bet</span>
+              <span class="detail-value">${{ (pick.betAmount ?? 0) | number:'1.2-2' }}</span>
+            </div>
+            <div class="pick-detail">
+              <span class="detail-label">To win</span>
+              <span class="detail-value" [class.win-value]="getResult(pick) === 'win'">
+                +${{ (pick.potentialWin ?? 0) | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Date -->
+          <div class="pick-date">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ (pick.eventDate?.toDate ? pick.eventDate.toDate() : pick.eventDate) | date:'MMM d, y · h:mm a' }}
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</ion-content>
