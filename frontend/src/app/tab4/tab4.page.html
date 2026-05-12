@@ -5,6 +5,7 @@
     </ion-buttons>
     <ion-title>Sports Book</ion-title>
     <ion-buttons slot="end">
+      <app-currency-display></app-currency-display>
       <app-logout-button />
     </ion-buttons>
   </ion-toolbar>
@@ -175,6 +176,10 @@
           @if (pendingTeam && !isCompleted(selectedEvent)) {
             <div class="bet-slip">
               <div class="bet-slip-row">
+                <span class="bet-slip-label">Balance</span>
+                <span class="bet-slip-value">${{ balance | number:'1.2-2' }}</span>
+              </div>
+              <div class="bet-slip-row">
                 <span class="bet-slip-label">Your pick</span>
                 <span class="bet-slip-value">{{ pendingTeam }}</span>
               </div>
@@ -203,10 +208,13 @@
                   <span class="bet-slip-value payout-value">+${{ calcPotentialWin() | number:'1.2-2' }}</span>
                 </div>
               }
+              @if (betError) {
+                <p class="bet-error">{{ betError }}</p>
+              }
               <ion-button
                 expand="block"
                 class="confirm-btn"
-                [disabled]="!betAmount || betAmount <= 0"
+                [disabled]="!betAmount || betAmount <= 0 || betAmount > balance"
                 (click)="confirmBet()">
                 Place Bet
               </ion-button>
