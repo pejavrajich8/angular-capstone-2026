@@ -1,4 +1,4 @@
-<ion-header [translucent]="true" [hidden]="gameStarted">
+<ion-header [translucent]="true" [hidden]="true">
   <ion-toolbar>
     <ion-title>Poker Table</ion-title>
     <ion-buttons slot="end">
@@ -13,85 +13,7 @@
     <p>Loading...</p>
   </div>
 
-  <div *ngIf="!gameStarted && !isLoading" class="game-setup">
-    <div class="setup-bg">
-      <div class="cards-pattern"></div>
-      <div class="chips-pattern"></div>
-      <div class="glow-orb orb-1"></div>
-      <div class="glow-orb orb-2"></div>
-    </div>
-
-    <div class="setup-container">
-      <div class="setup-header">
-        <h1 class="setup-title">
-          <span class="title-icon">🃏</span>
-          Poker Table
-          <span class="title-icon">🃏</span>
-        </h1>
-        <p class="setup-subtitle">High Stakes • {{ tableId }}</p>
-      </div>
-
-      <ion-card class="setup-card">
-        <ion-card-content>
-          <div class="card-inner">
-            <!-- Status Section -->
-            <div class="status-section">
-              <p class="status-message">{{ messages }}</p>
-            </div>
-
-            <!-- Chips Display -->
-            <div class="chips-display">
-              <div class="chip-graphic">
-                <div class="chip-ring"></div>
-                <div class="chip-center">💰</div>
-              </div>
-              <div class="chips-info">
-                <p class="chips-label">Ready to Play?</p>
-                <p class="chips-amount">${{ demoChipsAmount }} Demo Chips Available</p>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="button-group">
-              <button 
-                class="btn btn-primary"
-                [class.disabled]="!canClaimChips || isLoading"
-                (click)="claimDemoChips()"
-                [disabled]="!canClaimChips || isLoading"
-              >
-                <span class="btn-icon">💰</span>
-                <span class="btn-text">Claim Demo Chips</span>
-                <span class="btn-glow"></span>
-              </button>
-              
-              <button 
-                class="btn btn-secondary"
-                [class.disabled]="!gameState"
-                (click)="startGame()"
-                [disabled]="!gameState"
-              >
-                <span class="btn-icon">🚀</span>
-                <span class="btn-text">Start Game</span>
-                <span class="btn-glow"></span>
-              </button>
-            </div>
-
-            <!-- Game Rules Hint -->
-            <div class="game-rules">
-              <p class="rules-title">⚡ Game Rules</p>
-              <ul class="rules-list">
-                <li>Texas Hold'em Poker</li>
-                <li>AI Opponents Included</li>
-                <li>Real-time Multiplayer</li>
-              </ul>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
-  </div>
-
-  <div *ngIf="gameStarted" class="game-board">
+  <div class="game-board">
     <div class="scene">
       <div class="table-wrap">
         <div class="table-shadow"></div>
@@ -169,9 +91,11 @@
 
       <!-- Action Buttons -->
       <div class="action-bar" *ngIf="isPlayerTurn">
-        <button *ngFor="let action of legalActions" ion-button class="action-btn" (click)="playerAction(action)" [disabled]="isLoading">
-          {{ action | uppercase }}
-        </button>
+        <ng-container *ngFor="let action of legalActions">
+          <button *ngIf="action !== 'raise'" ion-button class="action-btn" (click)="playerAction(action)" [disabled]="isLoading">
+            {{ action | uppercase }}
+          </button>
+        </ng-container>
         <div *ngIf="legalActions.includes('raise')" class="raise-controls">
           <input type="number" [(ngModel)]="raiseAmount" placeholder="Raise" min="0" [max]="getPlayerInfo()?.chipStack" />
           <button ion-button class="action-btn raise" (click)="playerAction('raise')" [disabled]="isLoading">
@@ -182,6 +106,10 @@
 
       <!-- Betting Info Panel -->
       <div class="betting-info">
+        <div class="info-item">
+          <span class="info-label">Bankroll</span>
+          <span class="info-value">${{ bankroll }}</span>
+        </div>
         <div class="info-item">
           <span class="info-label">Your Stack</span>
           <span class="info-value">${{ getPlayerStack() }}</span>

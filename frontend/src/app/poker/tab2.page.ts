@@ -62,6 +62,8 @@ export class Tab2Page implements OnInit, OnDestroy {
   handEndData: any = null;
   showWinnerModal: boolean = false;
   footerExpanded: boolean = false;
+  bankroll: number = 1000;
+  private bankrollStorageKey = 'poker_bankroll';
   private destroy$ = new Subject<void>();
   private initialized: boolean = false;
 
@@ -71,7 +73,21 @@ export class Tab2Page implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.loadBankroll();
     this.initializePoker();
+  }
+
+  private loadBankroll() {
+    const raw = localStorage.getItem(this.bankrollStorageKey);
+    const parsed = raw ? Number(raw) : NaN;
+
+    // Starting money = $1000
+    this.bankroll = Number.isFinite(parsed) ? parsed : 1000;
+    this.saveBankroll();
+  }
+
+  private saveBankroll() {
+    localStorage.setItem(this.bankrollStorageKey, String(this.bankroll));
   }
 
   private generateTableId(): string {
@@ -146,9 +162,9 @@ export class Tab2Page implements OnInit, OnDestroy {
           this.handEndData = data;
           this.showWinnerModal = true;
           setTimeout(() => {
-            this.gameStarted = false;
             this.showWinnerModal = false;
             this.handEndData = null;
+            this.startGame(); // Restart the game
           }, 3000);
         });
 
@@ -156,6 +172,9 @@ export class Tab2Page implements OnInit, OnDestroy {
       await this.pokerService.joinGame(this.tableId, this.playerName);
       console.log('Joined game, tableId:', this.tableId);
       this.messages = 'Joined poker table!';
+      
+      // Start the game automatically
+      await this.startGame();
     } catch (error) {
       console.error('Error initializing poker:', error);
       this.messages = `Error: ${error}`;
@@ -182,8 +201,25 @@ export class Tab2Page implements OnInit, OnDestroy {
 
   async playerAction(action: string) {
     try {
+      const player = this.getPlayerInfo();
+      if (!player) return;
+      
+      // Prevent stack from going below 0
+      if (player.chipStack <= 0) {
+        this.messages = 'Insufficient chips!';
+        return;
+      }
+      
       this.isLoading = true;
       const amount = action === 'raise' ? this.raiseAmount : 0;
+      
+      // Validate raise amount doesn't exceed stack
+      if (action === 'raise' && amount > player.chipStack) {
+        this.messages = 'Raise amount exceeds your stack!';
+        this.isLoading = false;
+        return;
+      }
+      
       await this.pokerService.playerAction(this.tableId, action, amount);
       this.raiseAmount = 0;
     } catch (error) {

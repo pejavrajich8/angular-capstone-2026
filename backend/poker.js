@@ -139,6 +139,11 @@ class PokerGame {
     const player = this.players.find(p => p.id === playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
+    // Prevent actions if chip stack is already at 0
+    if (player.chipStack <= 0 && action !== 'fold' && action !== 'check') {
+      return { success: false, error: 'Insufficient chips' };
+    }
+
     const legalActions = this.getLegalActions(player);
     if (!legalActions.includes(action)) {
       return { success: false, error: 'Illegal action' };
@@ -170,9 +175,15 @@ class PokerGame {
           return { success: false, error: `Minimum raise is ${minRaise}` };
         }
         
-        const raiseAmount = Math.min(amount, player.chipStack + (player.currentBet - player.currentBet));
+        // Ensure raise doesn't exceed available chips
+        if (amount > player.chipStack) {
+          return { success: false, error: 'Raise amount exceeds available chips' };
+        }
+        
+        const raiseAmount = Math.min(amount, player.chipStack);
         const betAmount = this.currentBet - player.currentBet + raiseAmount;
         player.chipStack -= betAmount;
+        player.chipStack = Math.max(0, player.chipStack); // Ensure never below 0
         player.currentBet += betAmount;
         this.pot += betAmount;
         
