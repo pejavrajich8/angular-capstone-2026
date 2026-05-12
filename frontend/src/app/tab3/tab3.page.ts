@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
@@ -7,7 +7,9 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
-import { CurrencyPipe } from '@angular/common'; 
+import { CurrencyPipe } from '@angular/common';
+import { CurrencyService } from '../services/currency.service';
+import { CurrencyDisplayComponent } from '../components/currency-display/currency-display.component';
 
 interface SpinResult {
   isWin: boolean;
@@ -32,14 +34,15 @@ interface SpinResult {
     FormsModule,
     LogoutButtonComponent,
     CurrencyPipe,
+    CurrencyDisplayComponent,
   ],
 })
-export class Tab3Page {
+export class Tab3Page implements OnInit {
   symbols: string[] = ['big-P.png', '🍊', '🍋', '🔔', '💎', '🍀'];
   displaySymbols: [string, string, string] = ['big-P.png', 'big-P.png', 'big-P.png'];
   betAmount: number = 10;
   spinResult: SpinResult | null = null;
-  balance: number = 1000; 
+  balance: number = 0;
   isSpinning: boolean = false;
   image: HTMLImageElement = (() => {
     const img = new Image();
@@ -50,7 +53,20 @@ export class Tab3Page {
   private readonly Max_Spins: number = 50;
   private readonly SPIN_DURATIONS = [1200, 1600, 2000];
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private currencyService: CurrencyService
+  ) {}
+
+  ngOnInit() {
+    // Load user's balance from Firebase
+    this.balance = this.currencyService.getCurrentBalance();
+    
+    // Subscribe to balance updates
+    this.currencyService.currency$.subscribe(newBalance => {
+      this.balance = newBalance;
+    });
+  }
 
   get minBet(): number {
     return 1;
@@ -62,13 +78,20 @@ export class Tab3Page {
     this.betAmount = Math.max(this.minBet, Math.min(this.maxBet, this.betAmount || this.minBet));
   }
 
-  spin() {
+  async spin() {
     if (this.isSpinning || this.balance < this.betAmount || this.betAmount <= 0) {
       return;
     }
+
+    // Deduct bet from Firebase
+    const success = await this.currencyService.spendCurrency(this.betAmount, 'slots_bet');
+    if (!success) {
+      console.error('Failed to place bet');
+      return;
+    }
+
     this.isSpinning = true;
     this.spinResult = null;
-    this.balance -= this.betAmount;
 
     const finalSymbols: [string, string, string] = [
       this.symbols[Math.floor(Math.random() * this.symbols.length)],
@@ -110,7 +133,7 @@ export class Tab3Page {
     requestAnimationFrame(tick);
   }
 
-  private finishSpin(symbols: [string, string, string]) {
+  private async finishSpin(symbols: [string, string, string]) {
     const [r1, r2, r3] = symbols;
     const allMatch = r1 === r2 && r2 === r3;
     const twoMatch = r1 === r2 || r2 === r3 || r1 === r3;
@@ -126,7 +149,10 @@ export class Tab3Page {
       tier = 'partial';
     }
  
-    this.balance += winAmount;
+    // Add winnings to Firebase if player won
+    if (winAmount > 0) {
+      await this.currencyService.addCurrency(winAmount, 'slots_win');
+    }
  
     this.spinResult = {
       isWin: winAmount > 0,
@@ -142,3 +168,4 @@ export class Tab3Page {
   }
 
 }
+

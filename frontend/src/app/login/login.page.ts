@@ -7,6 +7,7 @@ import {
 } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
 import { IonContent } from '@ionic/angular/standalone';
+import { CurrencyService } from '../services/currency.service';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +23,12 @@ export class LoginPage {
   loading = false;
   rememberMe = false;
 
-  constructor(private auth: Auth, private firestore: Firestore, private router: Router) {}
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore,
+    private router: Router,
+    private currencyService: CurrencyService
+  ) {}
 
   async loginWithEmail() {
     this.error = '';
@@ -64,6 +70,11 @@ export class LoginPage {
       lastLogin: serverTimestamp(),
     }, { merge: true }).catch(err =>
       console.warn('[Firestore] users doc write failed:', err.code)
+    );
+    
+    // Initialize currency for the user
+    this.currencyService.initializeUserCurrency(uid).catch(err =>
+      console.warn('[Currency] initialization failed:', err)
     );
   }
 
