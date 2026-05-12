@@ -105,6 +105,18 @@ app.get('/api/odds', async (req, res) => {
   }
 });
 
+// get scores / results for a sport
+app.get('/api/scores', async (req, res) => {
+  const sport = req.query.sport || 'american-football';
+  try {
+    const data = await odsFetch(`${ODDS_BASE_URL}/scores?apiKey=${ODDS_API_KEY}&sport=${sport}`);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching scores:', error.message);
+    res.status(502).json({ error: error.message });
+  }
+});
+
 // static fallback (if you want to serve built frontend from ../frontend/dist)
 app.use('/', express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 
