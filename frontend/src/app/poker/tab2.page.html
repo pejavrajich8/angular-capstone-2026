@@ -8,114 +8,152 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="poker-view">
-  <div class="scene">
-    <div class="table-wrap">
-      <div class="table-shadow"></div>
-      <div class="table-rail"></div>
-      <div class="table-felt"></div>
-      <div class="table-line"></div>
+  <div *ngIf="isLoading" class="loading">
+    <ion-spinner></ion-spinner>
+    <p>Loading...</p>
+  </div>
 
-      <div class="table-logo">High Stakes</div>
+  <div *ngIf="!gameStarted && !isLoading" class="game-setup">
+    <ion-card>
+      <ion-card-content>
+        <h2>Join Poker Table</h2>
+        <p>Table ID: {{ tableId }}</p>
 
-      <div class="pot">
-        <span class="label">Pot</span>
-        <span class="value">$32.41</span>
+        <ion-text>
+          <p>{{ messages }}</p>
+        </ion-text>
+
+        <div class="button-group">
+          <button ion-button (click)="startGame()" [disabled]="!gameState">
+            Start Game
+          </button>
+          
+          <button ion-button color="secondary" (click)="claimDemoChips()" [disabled]="!canClaimChips || isLoading">
+            💰 Claim ${{ demoChipsAmount }} Demo Chips
+          </button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <div *ngIf="gameStarted" class="game-board">
+    <div class="scene">
+      <div class="table-wrap">
+        <div class="table-shadow"></div>
+        <div class="table-rail"></div>
+        <div class="table-felt"></div>
+        <div class="table-line"></div>
+
+        <div class="table-logo">High Stakes Poker</div>
+
+        <div class="pot">
+          <span class="label">Pot</span>
+          <span class="value">${{ gameState?.pot }}</span>
+        </div>
+
+        <!-- Winner Modal -->
+        <div *ngIf="showWinnerModal" class="winner-modal">
+          <div class="winner-content">
+            <h2>🎉 Hand Over! 🎉</h2>
+            <p class="winner-name">{{ handEndData?.winner }} Wins!</p>
+            <p class="winner-amount">${{ handEndData?.winAmount }}</p>
+            <p class="hand-type">{{ handEndData?.handType }}</p>
+            <p class="next-hand">Starting next hand...</p>
+          </div>
+        </div>
+
+        <div class="board" aria-hidden="true">
+          <div *ngFor="let card of gameState?.communityCards" class="card" [title]="card.rank + card.suit">
+            {{ card.rank }}{{ card.suit }}
+          </div>
+        </div>
+
+        <div class="chips" aria-hidden="true">
+          <div class="chip"></div>
+          <div class="chip blue"></div>
+          <div class="chip gold"></div>
+        </div>
+
+        <!-- Seats for other players -->
+        <div *ngFor="let player of getOtherPlayers(); let i = index" [ngClass]="'seat seat-' + i">
+          <div class="avatar"></div>
+          <div class="nameplate">
+            <span class="player">{{ player.name }}</span>
+            <span class="stack">${{ player.chipStack }}</span>
+          </div>
+          <div class="player-status" *ngIf="player.isFolded || player.isAllIn">
+            <span *ngIf="player.isFolded" class="badge folded">Folded</span>
+            <span *ngIf="player.isAllIn" class="badge all-in">All In</span>
+          </div>
+          <div class="back-cards" aria-hidden="true">
+            <div class="card back"></div>
+            <div class="card back"></div>
+          </div>
+        </div>
+
+        <!-- Your seat (bottom) -->
+        <div class="seat bottom" *ngIf="getPlayerInfo()">
+          <div class="avatar your-avatar"></div>
+          <div class="nameplate">
+            <span class="player">{{ getPlayerInfo()?.name }} (You)</span>
+            <span class="stack">${{ getPlayerInfo()?.chipStack }}</span>
+          </div>
+          <div class="hand-indicator">
+            <span class="badge">{{ getPlayerInfo()?.holeCardCount }} cards</span>
+          </div>
+        </div>
       </div>
 
-      <div class="board" aria-hidden="true">
-        <div class="card"></div>
-        <div class="card"></div>
-        <div class="card"></div>
-        <div class="card"></div>
-        <div class="card"></div>
+      <div class="hand-dock">
+        <div class="hand-cards">
+          <div *ngFor="let card of holeCards" class="card">
+            {{ card.rank }}{{ card.suit }}
+          </div>
+          <div *ngIf="holeCards.length === 0" class="card empty">?</div>
+          <div *ngIf="holeCards.length === 0" class="card empty">?</div>
+        </div>
       </div>
 
-      <div class="chips" aria-hidden="true">
-        <div class="chip"></div>
-        <div class="chip blue"></div>
-        <div class="chip gold"></div>
+      <!-- Betting Info Panel -->
+      <div class="betting-info">
+        <div class="info-item">
+          <span class="info-label">Your Stack</span>
+          <span class="info-value">${{ getPlayerStack() }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Current Bet</span>
+          <span class="info-value">${{ getTotalBet() }}</span>
+        </div>
+        <div class="info-item" *ngIf="getAmountToCall() > 0">
+          <span class="info-label">To Call</span>
+          <span class="info-value highlight">${{ getAmountToCall() }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Table Pot</span>
+          <span class="info-value pot-highlight">${{ getPotAmount() }}</span>
+        </div>
       </div>
 
-      <div class="seat top">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">AlexElisev7</span>
-          <span class="stack">$139.20</span>
-        </div>
-        <div class="back-cards" aria-hidden="true">
-          <div class="card back"></div>
-          <div class="card back"></div>
-        </div>
-      </div>
-      <div class="seat top-left">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">alkash613</span>
-          <span class="stack">$100</span>
-        </div>
-        <div class="back-cards" aria-hidden="true">
-          <div class="card back"></div>
-          <div class="card back"></div>
+      <div class="action-bar" *ngIf="isPlayerTurn">
+        <button *ngFor="let action of legalActions" ion-button class="action-btn" (click)="playerAction(action)" [disabled]="isLoading">
+          {{ action | uppercase }}
+        </button>
+        <div *ngIf="legalActions.includes('raise')" class="raise-controls">
+          <input type="number" [(ngModel)]="raiseAmount" placeholder="Raise" min="0" [max]="getPlayerInfo()?.chipStack" />
+          <button ion-button class="action-btn raise" (click)="playerAction('raise')" [disabled]="isLoading">
+            Raise {{ raiseAmount }}
+          </button>
         </div>
       </div>
-      <div class="seat top-right">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">irc122</span>
-          <span class="stack">$136.40</span>
-        </div>
-        <div class="back-cards" aria-hidden="true">
-          <div class="card back"></div>
-          <div class="card back"></div>
-        </div>
+
+      <div class="game-info">
+        <p class="message" *ngIf="messages">{{ messages }}</p>
+        <p class="waiting" *ngIf="!isPlayerTurn && gameState">Waiting for other players...</p>
       </div>
-      <div class="seat left">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">yield1990</span>
-          <span class="stack">$90.93</span>
-        </div>
-        <div class="back-cards" aria-hidden="true">
-          <div class="card back"></div>
-          <div class="card back"></div>
-        </div>
-      </div>
-      <div class="seat right">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">ZacheusBB</span>
-          <span class="stack">$121.85</span>
-        </div>
-        <div class="back-cards" aria-hidden="true">
-          <div class="card back"></div>
-          <div class="card back"></div>
-        </div>
-      </div>
-      <div class="seat bottom">
-        <div class="avatar"></div>
-        <div class="nameplate">
-          <span class="player">You</span>
-          <span class="stack">$79.28</span>
-        </div>
-      </div>
+
+      <p class="caption">
+        Texas Hold'em Poker with AI Bot Players - {{ gameState?.gameState | uppercase }}
+      </p>
     </div>
-
-    <div class="hand-dock">
-      <div class="hand-cards">
-        <div class="card"></div>
-        <div class="card"></div>
-      </div>
-    </div>
-
-    <div class="action-bar">
-      <button class="action-btn fold" type="button">Fold</button>
-      <button class="action-btn call" type="button">Call</button>
-      <button class="action-btn raise" type="button">Raise</button>
-    </div>
-
-    <p class="caption">
-      <strong>Third-person table view</strong> inspired by classic online poker
-      layouts. Add real avatars, card faces, and chip stacks when ready.
-    </p>
   </div>
 </ion-content>
