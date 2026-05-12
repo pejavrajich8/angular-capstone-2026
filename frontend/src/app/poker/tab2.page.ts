@@ -61,6 +61,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   holeCards: any[] = [];
   handEndData: any = null;
   showWinnerModal: boolean = false;
+  footerExpanded: boolean = false;
   private destroy$ = new Subject<void>();
   private initialized: boolean = false;
 
@@ -240,5 +241,9 @@ export class Tab2Page implements OnInit, OnDestroy {
 
   getPotAmount(): number {
     return this.gameState?.pot || 0;
+  }
+
+  toggleFooter() {
+    this.footerExpanded = !this.footerExpanded;
   }
 }
