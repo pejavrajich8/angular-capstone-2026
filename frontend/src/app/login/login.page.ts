@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
-  setPersistence, browserLocalPersistence, browserSessionPersistence, UserCredential,
+  Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, UserCredential,
 } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
 import { IonContent } from '@ionic/angular/standalone';
@@ -29,9 +28,8 @@ export class LoginPage {
     this.error = '';
     this.loading = true;
     try {
-      await setPersistence(this.auth, this.rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const cred = await signInWithEmailAndPassword(this.auth, this.email, this.password);
-      await this.saveUserDoc(cred);
+      this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] email sign-in error:', e.code, e.message);
@@ -45,9 +43,8 @@ export class LoginPage {
     this.error = '';
     this.loading = true;
     try {
-      await setPersistence(this.auth, this.rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const cred = await signInWithPopup(this.auth, new GoogleAuthProvider());
-      await this.saveUserDoc(cred);
+      this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] Google sign-in error:', e.code, e.message);
@@ -57,15 +54,17 @@ export class LoginPage {
     }
   }
 
-  private async saveUserDoc(cred: UserCredential) {
+  private saveUserDoc(cred: UserCredential) {
     const { uid, email, displayName, photoURL } = cred.user;
-    await setDoc(doc(this.firestore, 'users', uid), {
+    setDoc(doc(this.firestore, 'users', uid), {
       uid,
       email,
       displayName: displayName ?? email?.split('@')[0] ?? 'Player',
       photoURL: photoURL ?? null,
       lastLogin: serverTimestamp(),
-    }, { merge: true });
+    }, { merge: true }).catch(err =>
+      console.warn('[Firestore] users doc write failed:', err.code)
+    );
   }
 
   private friendlyError(code: string, message?: string): string {
