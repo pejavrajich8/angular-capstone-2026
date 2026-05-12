@@ -1,84 +1,138 @@
+// ── Theme variables ──────────────────────────────────────────────
+$bg:        #07070f;
+$surface:   #12121e;
+$card:      #16161f;
+$border:    #2a2a3e;
+$purple:    #7c3aed;
+$purple-lt: #a78bfa;
+$blue:      #2563eb;
+$text:      #f0f0f5;
+$muted:     #8a8a9a;
+$label:     #b0b0c0;
+$win:       #22c55e;
+$loss:      #ef4444;
+
+// ── Page background ──────────────────────────────────────────────
+ion-content {
+  --background: #{$bg};
+}
+
+ion-toolbar {
+  --background: #{$surface};
+  --border-color: #{$border};
+}
+
+ion-title { color: $text; }
+
+// ── Sport chips ──────────────────────────────────────────────────
 .sport-chips {
   display: flex;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 14px 16px;
   overflow-x: auto;
   scrollbar-width: none;
+  background: $bg;
   &::-webkit-scrollbar { display: none; }
 
   ion-chip {
     flex-shrink: 0;
     font-weight: 600;
-    padding: 6px 24px;
+    font-size: 13px;
+    --background: #{$card};
+    --color: #{$muted};
+    border: 1px solid $border;
+    transition: all 0.2s;
+
+    &[color="primary"] {
+      --background: #{rgba($purple, 0.2)};
+      --color: #{$purple-lt};
+      border-color: $purple;
+    }
   }
 }
 
+// ── Spinner ──────────────────────────────────────────────────────
 .spinner-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 0;
+  padding: 64px 0;
   gap: 12px;
-  color: var(--ion-color-medium);
+  color: $muted;
+
+  ion-spinner { --color: #{$purple-lt}; }
 }
 
+// ── Events list ──────────────────────────────────────────────────
 .events-list {
-  padding: 8px 12px 24px;
+  padding: 8px 14px 32px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  background: $bg;
 }
 
 .event-card {
   margin: 0;
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: $card;
+  border: 1px solid $border;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  --background: #{$card};
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+    border-color: $purple;
+    box-shadow: 0 0 0 2px rgba($purple, 0.25);
+  }
 }
 
+// ── Event meta bar ───────────────────────────────────────────────
 .event-meta {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px 0;
-  font-size: 12px;
-  color: var(--ion-color-medium);
+  padding: 12px 16px 0;
+  font-size: 11px;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 
-  ion-icon { font-size: 14px; }
-
-  .dot { opacity: 0.5; }
+  ion-icon { font-size: 13px; color: $purple-lt; }
+  .dot { opacity: 0.4; }
 
   .pick-badge, .badge-live, .badge-final {
     margin-left: auto;
     font-size: 10px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    font-weight: 700;
   }
 
   .badge-live {
-    background: #ef4444;
+    --background: #{$loss};
     color: #fff;
     animation: pulse 1.5s infinite;
   }
 
   .badge-final {
-    background: var(--ion-color-medium);
-    color: #fff;
+    --background: #3a3a50;
+    color: $muted;
   }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.55; }
 }
 
+// ── Matchup row ──────────────────────────────────────────────────
 .matchup {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px !important;
+  padding: 14px 16px 16px !important;
   gap: 8px;
 }
 
@@ -87,64 +141,125 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   text-align: center;
 
   &.picked .team-avatar {
-    background: var(--ion-color-success);
+    background: linear-gradient(135deg, $purple, $blue);
     color: #fff;
+    box-shadow: 0 0 12px rgba($purple, 0.5);
   }
-
   &.winner .team-avatar {
-    background: var(--ion-color-success);
+    background: linear-gradient(135deg, #16a34a, #22c55e);
     color: #fff;
+    box-shadow: 0 0 12px rgba($win, 0.4);
   }
-
   &.loser .team-avatar {
-    background: var(--ion-color-danger);
-    color: #fff;
-    opacity: 0.7;
+    background: rgba($loss, 0.2);
+    color: rgba($text, 0.4);
   }
-}
-
-.team-score {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ion-color-dark);
-  line-height: 1;
 }
 
 .team-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--ion-color-light);
+  background: #1e1e2e;
+  border: 1px solid $border;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 14px;
-  color: var(--ion-color-dark);
-  transition: background 0.2s ease;
+  color: $label;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .team-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
+  color: $text;
+  line-height: 1.3;
 }
 
-.vs-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.team-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: $text;
+  line-height: 1;
 }
+
+.vs-block { display: flex; align-items: center; }
 
 .vs {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--ion-color-medium);
+  color: $border;
   letter-spacing: 1px;
+}
+
+// ── Modal ────────────────────────────────────────────────────────
+.bet-modal {
+  --background: #{$surface};
+  --padding-top: 0;
+}
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: $border;
+  margin: 16px auto 20px;
+}
+
+.modal-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+
+  ion-icon { color: $purple-lt; }
+}
+
+.modal-score-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  .score-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: $muted;
+  }
+  .score-value {
+    font-size: 30px;
+    font-weight: 900;
+    color: $text;
+  }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $loss;
+    animation: pulse 1.5s infinite;
+  }
+  &.live .score-label { color: $loss; }
+}
+
+.modal-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: 20px;
 }
 
 .odds-loading {
@@ -153,76 +268,16 @@
   justify-content: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--ion-color-medium);
-  margin-bottom: 8px;
+  color: $muted;
+  margin-bottom: 10px;
 }
 
-/* Modal */
-.bet-modal {
-  --padding-top: 16px;
-}
-
-.modal-handle {
-  width: 40px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--ion-color-light-shade);
-  margin: 0 auto 20px;
-}
-
-.modal-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--ion-color-medium);
-  margin-bottom: 8px;
-}
-
-.modal-score-block {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  .score-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--ion-color-medium);
-  }
-
-  .score-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--ion-color-dark);
-  }
-
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ef4444;
-    animation: pulse 1.5s infinite;
-  }
-
-  &.live .score-label { color: #ef4444; }
-}
-
-.modal-title {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 24px;
-}
-
+// ── Pick cards (modal) ───────────────────────────────────────────
 .pick-buttons {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .pick-card {
@@ -232,61 +287,60 @@
   align-items: center;
   gap: 10px;
   padding: 20px 12px;
-  border-radius: 16px;
-  border: 2px solid var(--ion-color-light-shade);
+  border-radius: 14px;
+  border: 2px solid $border;
+  background: $card;
   cursor: pointer;
   position: relative;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 
-  &:active { transform: scale(0.97); }
+  &:active:not(.pick-card--disabled) { transform: scale(0.97); }
 
   &--selected {
-    border-color: var(--ion-color-success);
-    background: rgba(var(--ion-color-success-rgb), 0.08);
+    border-color: $purple;
+    background: rgba($purple, 0.1);
+    box-shadow: 0 0 0 2px rgba($purple, 0.2);
   }
-
   &--win {
-    border-color: var(--ion-color-success);
-    background: rgba(var(--ion-color-success-rgb), 0.12);
+    border-color: $win;
+    background: rgba($win, 0.08);
   }
-
   &--loss {
-    border-color: var(--ion-color-danger);
-    background: rgba(var(--ion-color-danger-rgb), 0.08);
-    opacity: 0.75;
+    border-color: $loss;
+    background: rgba($loss, 0.06);
+    opacity: 0.7;
   }
-
-  &--disabled {
-    cursor: default;
-    &:active { transform: none; }
-  }
-}
-
-.pick-odds {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ion-color-medium);
-
-  &.favorite { color: var(--ion-color-danger); }
+  &--disabled { cursor: default; }
 }
 
 .pick-avatar {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: var(--ion-color-light);
+  background: #1e1e2e;
+  border: 1px solid $border;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  color: $label;
 }
 
 .pick-team {
   font-size: 13px;
   font-weight: 600;
   text-align: center;
-  line-height: 1.2;
+  color: $text;
+  line-height: 1.3;
+}
+
+.pick-odds {
+  font-size: 15px;
+  font-weight: 800;
+  color: $purple-lt;
+
+  &.favorite { color: #fb923c; }
 }
 
 .check-icon {
@@ -297,20 +351,23 @@
 }
 
 .pick-divider {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--ion-color-medium);
+  color: $border;
   letter-spacing: 1px;
+  align-self: center;
 }
 
+// ── Bet slip ─────────────────────────────────────────────────────
 .bet-slip {
-  background: var(--ion-color-light);
+  background: $card;
+  border: 1px solid $border;
   border-radius: 14px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .bet-slip-row {
@@ -320,18 +377,21 @@
 }
 
 .bet-slip-label {
-  font-size: 13px;
-  color: var(--ion-color-medium);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
 }
 
 .bet-slip-value {
   font-size: 14px;
-  font-weight: 600;
-  color: var(--ion-color-dark);
+  font-weight: 700;
+  color: $text;
 }
 
 .bet-amount-row {
-  border-top: 1px solid var(--ion-color-light-shade);
+  border-top: 1px solid $border;
   padding-top: 12px;
 }
 
@@ -339,16 +399,19 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--ion-background-color);
-  border: 1px solid var(--ion-color-light-shade);
+  background: $surface;
+  border: 1px solid $border;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 6px 12px;
+  transition: border-color 0.2s;
+
+  &:focus-within { border-color: $purple; }
 }
 
 .bet-dollar {
   font-size: 15px;
-  font-weight: 600;
-  color: var(--ion-color-medium);
+  font-weight: 700;
+  color: $purple-lt;
 }
 
 .bet-input {
@@ -357,22 +420,32 @@
   outline: none;
   background: transparent;
   font-size: 15px;
-  font-weight: 700;
-  color: var(--ion-color-dark);
+  font-weight: 800;
+  color: $text;
   text-align: right;
 }
 
 .payout-row {
-  border-top: 1px solid var(--ion-color-light-shade);
+  border-top: 1px solid $border;
   padding-top: 12px;
 }
 
 .payout-value {
-  color: var(--ion-color-success);
-  font-size: 16px;
-  font-weight: 700;
+  color: $win;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.bet-error {
+  color: $loss;
+  font-size: 13px;
+  text-align: center;
+  margin: 0;
 }
 
 .confirm-btn {
   margin-top: 4px;
+  --background: linear-gradient(135deg, #{$purple}, #{$blue});
+  --border-radius: 10px;
+  font-weight: 700;
 }

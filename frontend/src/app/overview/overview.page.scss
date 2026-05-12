@@ -1,109 +1,139 @@
+// ── Theme variables ──────────────────────────────────────────────
+$bg:        #07070f;
+$surface:   #12121e;
+$card:      #16161f;
+$border:    #2a2a3e;
+$purple:    #7c3aed;
+$purple-lt: #a78bfa;
+$blue:      #2563eb;
+$text:      #f0f0f5;
+$muted:     #8a8a9a;
+$label:     #b0b0c0;
+$win:       #22c55e;
+$loss:      #ef4444;
+
+// ── Page ────────────────────────────────────────────────────────
+ion-content {
+  --background: #{$bg};
+}
+
+ion-toolbar {
+  --background: #{$surface};
+  --border-color: #{$border};
+}
+
+ion-title { color: $text; }
+
+// ── Spinner ──────────────────────────────────────────────────────
 .spinner-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 64px 0;
   gap: 12px;
-  color: var(--ion-color-medium);
+  color: $muted;
+  ion-spinner { --color: #{$purple-lt}; }
 }
 
-/* Summary grid */
+// ── Summary grid ─────────────────────────────────────────────────
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
   padding: 16px 16px 8px;
 }
 
 .stat-card {
-  background: var(--ion-color-light);
-  border-radius: 14px;
-  padding: 14px 16px;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 
   &.highlight {
-    background: rgba(var(--ion-color-success-rgb), 0.1);
-    border: 1px solid rgba(var(--ion-color-success-rgb), 0.25);
+    background: rgba($purple, 0.1);
+    border-color: rgba($purple, 0.4);
   }
 }
 
 .stat-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--ion-color-medium);
+  letter-spacing: 0.8px;
+  color: $muted;
 }
 
 .stat-value {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ion-color-dark);
+  font-size: 24px;
+  font-weight: 900;
+  color: $text;
   line-height: 1.1;
 
-  &.win-value { color: var(--ion-color-success); }
+  &.win-value { color: $win; }
 }
 
 .record {
-  .wins { color: var(--ion-color-success); }
-  .losses { color: var(--ion-color-danger); }
-  .sep { color: var(--ion-color-medium); font-weight: 400; }
+  .wins { color: $win; }
+  .losses { color: $loss; }
+  .sep { color: $border; font-weight: 400; }
 }
 
 .stat-sub {
   font-size: 11px;
-  color: var(--ion-color-medium);
+  color: $muted;
 }
 
-.win-value { color: var(--ion-color-success) !important; }
+.win-value { color: $win !important; }
 
-/* Empty state */
+// ── Empty state ──────────────────────────────────────────────────
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 24px;
+  padding: 56px 24px;
   gap: 8px;
   text-align: center;
+  color: $text;
 }
 
 .empty-icon {
-  font-size: 48px;
-  color: var(--ion-color-light-shade);
+  font-size: 52px;
+  color: $border;
 }
 
 .empty-sub {
   font-size: 13px;
-  color: var(--ion-color-medium);
+  color: $muted;
 }
 
-/* Picks list */
+// ── Picks list ───────────────────────────────────────────────────
 .picks-list {
-  padding: 8px 16px 32px;
+  padding: 8px 16px 40px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .pick-card {
-  background: var(--ion-color-light);
+  background: $card;
+  border: 1px solid $border;
   border-radius: 16px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border-left: 4px solid transparent;
+  gap: 12px;
+  border-left: 4px solid $border;
+  transition: border-left-color 0.2s;
 
-  &.pick-win { border-left-color: var(--ion-color-success); }
-  &.pick-loss {
-    border-left-color: var(--ion-color-danger);
-    opacity: 0.8;
-  }
-  &.pick-live { border-left-color: #ef4444; }
+  &.pick-win  { border-left-color: $win; }
+  &.pick-loss { border-left-color: $loss; opacity: 0.8; }
+  &.pick-live { border-left-color: $loss; }
 }
 
+// ── Pick header ──────────────────────────────────────────────────
 .pick-header {
   display: flex;
   align-items: center;
@@ -114,24 +144,31 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
-  color: var(--ion-color-medium);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $muted;
 
-  ion-icon { font-size: 13px; }
+  ion-icon { font-size: 13px; color: $purple-lt; }
 }
 
+// ── Badges ───────────────────────────────────────────────────────
 .badge-live {
-  background: #ef4444;
+  --background: #{$loss};
   color: #fff;
   font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.55; }
 }
 
+// ── Matchup row ──────────────────────────────────────────────────
 .pick-matchup {
   display: flex;
   align-items: center;
@@ -143,16 +180,19 @@
   flex: 1;
   font-size: 13px;
   font-weight: 600;
-  color: var(--ion-color-medium);
+  color: $muted;
 
   &.right { text-align: right; }
-  &.picked-team { color: var(--ion-color-dark); font-weight: 800; }
+  &.picked-team {
+    color: $text;
+    font-weight: 800;
+  }
 }
 
 .matchup-score {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--ion-color-dark);
+  font-size: 20px;
+  font-weight: 900;
+  color: $text;
   text-align: center;
   min-width: 60px;
 }
@@ -160,50 +200,52 @@
 .matchup-vs {
   font-size: 11px;
   font-weight: 700;
-  color: var(--ion-color-medium);
+  color: $border;
   letter-spacing: 1px;
   text-align: center;
   min-width: 30px;
 }
 
+// ── Pick details grid ────────────────────────────────────────────
 .pick-details {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 8px;
-  border-top: 1px solid var(--ion-color-light-shade);
-  padding-top: 10px;
+  border-top: 1px solid $border;
+  padding-top: 12px;
 }
 
 .pick-detail {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .detail-label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--ion-color-medium);
+  letter-spacing: 0.5px;
+  color: $muted;
 }
 
 .detail-value {
   font-size: 13px;
   font-weight: 700;
-  color: var(--ion-color-dark);
+  color: $text;
+
+  &.win-value { color: $win; }
 }
 
-.pick-team-name {
-  font-size: 12px;
-}
+.pick-team-name { font-size: 12px; }
 
+// ── Date row ─────────────────────────────────────────────────────
 .pick-date {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: var(--ion-color-medium);
+  color: $muted;
 
   ion-icon { font-size: 12px; }
 }
