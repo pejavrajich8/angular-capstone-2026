@@ -51,11 +51,27 @@
 
   .dot { opacity: 0.5; }
 
-  .pick-badge {
+  .pick-badge, .badge-live, .badge-final {
     margin-left: auto;
     font-size: 10px;
     letter-spacing: 0.5px;
   }
+
+  .badge-live {
+    background: #ef4444;
+    color: #fff;
+    animation: pulse 1.5s infinite;
+  }
+
+  .badge-final {
+    background: var(--ion-color-medium);
+    color: #fff;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .matchup {
@@ -71,13 +87,31 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   text-align: center;
 
   &.picked .team-avatar {
     background: var(--ion-color-success);
     color: #fff;
   }
+
+  &.winner .team-avatar {
+    background: var(--ion-color-success);
+    color: #fff;
+  }
+
+  &.loser .team-avatar {
+    background: var(--ion-color-danger);
+    color: #fff;
+    opacity: 0.7;
+  }
+}
+
+.team-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  line-height: 1;
 }
 
 .team-avatar {
@@ -113,6 +147,16 @@
   letter-spacing: 1px;
 }
 
+.odds-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+}
+
 /* Modal */
 .bet-modal {
   --padding-top: 16px;
@@ -134,6 +178,37 @@
   font-size: 13px;
   color: var(--ion-color-medium);
   margin-bottom: 8px;
+}
+
+.modal-score-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .score-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--ion-color-medium);
+  }
+
+  .score-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--ion-color-dark);
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: pulse 1.5s infinite;
+  }
+
+  &.live .score-label { color: #ef4444; }
 }
 
 .modal-title {
@@ -169,6 +244,30 @@
     border-color: var(--ion-color-success);
     background: rgba(var(--ion-color-success-rgb), 0.08);
   }
+
+  &--win {
+    border-color: var(--ion-color-success);
+    background: rgba(var(--ion-color-success-rgb), 0.12);
+  }
+
+  &--loss {
+    border-color: var(--ion-color-danger);
+    background: rgba(var(--ion-color-danger-rgb), 0.08);
+    opacity: 0.75;
+  }
+
+  &--disabled {
+    cursor: default;
+    &:active { transform: none; }
+  }
+}
+
+.pick-odds {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+
+  &.favorite { color: var(--ion-color-danger); }
 }
 
 .pick-avatar {
@@ -204,12 +303,76 @@
   letter-spacing: 1px;
 }
 
-.pick-confirm {
+.bet-slip {
+  background: var(--ion-color-light);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.bet-slip-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: space-between;
+}
+
+.bet-slip-label {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.bet-slip-value {
   font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.bet-amount-row {
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding-top: 12px;
+}
+
+.bet-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ion-background-color);
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.bet-dollar {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+.bet-input {
+  width: 80px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  text-align: right;
+}
+
+.payout-row {
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding-top: 12px;
+}
+
+.payout-value {
   color: var(--ion-color-success);
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.confirm-btn {
+  margin-top: 4px;
 }

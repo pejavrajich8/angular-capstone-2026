@@ -23,6 +23,18 @@
       <p class="balance-label">Balance</p>
       <p class="balance-amount">{{ balance | currency }}</p>
     </div>
+      <div class="bet-card">
+        <p class="bet-label">Bet Amount</p>
+        <input 
+          type="number" 
+          [(ngModel)]="betAmount"
+          (change)="betChange()"
+          [min]="minBet"
+          [max]="maxBet"
+          [disabled]="isSpinning"
+          class="bet-input" />
+        <p class="bet-range">Min: {{ minBet | currency }} | Max: {{ maxBet | currency }}</p>
+      </div>
   </div>
 
   <!-- Slots Machine -->
@@ -30,38 +42,46 @@
     <div class="slots-display">
       <!-- Reel 1 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[0].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[0])" [alt]="displaySymbols[0]" />
+            </div>
+            <div *ngIf="!displaySymbols[0].endsWith('.png')">{{ displaySymbols[0] }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Reel 2 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel1Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[1].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[1])" [alt]="displaySymbols[1]" />
+            </div>
+            <div *ngIf="!displaySymbols[1].endsWith('.png')">{{ displaySymbols[1] }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Reel 3 -->
       <div class="reel-container">
-        <div class="reel" [style.transform]="'translateY(' + reel3Offset + 'px)'" [class.spinning]="isSpinning">
-          @for (symbol of reelSymbols; track $index) {
-            <div class="reel-item">{{ symbol }}</div>
-          }
+        <div class="reel" >
+          <div class="reel-item">
+            <div *ngIf="displaySymbols[2].endsWith('.png')" class="symbol-image">
+              <img [src]="getSafeImageUrl(displaySymbols[2])" [alt]="displaySymbols[2]" />
+            </div>
+            <div *ngIf="!displaySymbols[2].endsWith('.png')">{{ displaySymbols[2] }}</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Result Message -->
-  @if (lastResult && !isSpinning) {
-    <div class="result-section" [class.win]="lastResult.isWin">
-      <p class="result-title">{{ lastResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
-      <p class="result-amount">{{ lastResult.isWin ? '+' : '-' }}{{ lastResult.amount | currency }}</p>
+  @if (spinResult && !isSpinning) {
+    <div class="result-section" [class.win]="spinResult.isWin">
+      <p class="result-title">{{ spinResult.isWin ? '🎉 YOU WIN!' : 'Better luck next time!' }}</p>
+      <p class="result-amount">{{ spinResult.isWin ? '+' : '-' }}{{ spinResult.amount | currency }}</p>
     </div>
   }
 
@@ -69,7 +89,6 @@
   <div class="button-section">
     <ion-button 
       expand="block" 
-      [color]="balance >= betAmount ? 'primary' : 'medium'"
       [disabled]="isSpinning || balance < betAmount"
       (click)="spin()">
       {{ isSpinning ? 'SPINNING...' : 'SPIN' }}

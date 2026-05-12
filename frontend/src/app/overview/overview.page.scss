@@ -1,0 +1,209 @@
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 0;
+  gap: 12px;
+  color: var(--ion-color-medium);
+}
+
+/* Summary grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px 16px 8px;
+}
+
+.stat-card {
+  background: var(--ion-color-light);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &.highlight {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    border: 1px solid rgba(var(--ion-color-success-rgb), 0.25);
+  }
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ion-color-medium);
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  line-height: 1.1;
+
+  &.win-value { color: var(--ion-color-success); }
+}
+
+.record {
+  .wins { color: var(--ion-color-success); }
+  .losses { color: var(--ion-color-danger); }
+  .sep { color: var(--ion-color-medium); font-weight: 400; }
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+}
+
+.win-value { color: var(--ion-color-success) !important; }
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: var(--ion-color-light-shade);
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+/* Picks list */
+.picks-list {
+  padding: 8px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pick-card {
+  background: var(--ion-color-light);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 4px solid transparent;
+
+  &.pick-win { border-left-color: var(--ion-color-success); }
+  &.pick-loss {
+    border-left-color: var(--ion-color-danger);
+    opacity: 0.8;
+  }
+  &.pick-live { border-left-color: #ef4444; }
+}
+
+.pick-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pick-league {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+
+  ion-icon { font-size: 13px; }
+}
+
+.badge-live {
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pick-matchup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.matchup-team {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+
+  &.right { text-align: right; }
+  &.picked-team { color: var(--ion-color-dark); font-weight: 800; }
+}
+
+.matchup-score {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  text-align: center;
+  min-width: 60px;
+}
+
+.matchup-vs {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  letter-spacing: 1px;
+  text-align: center;
+  min-width: 30px;
+}
+
+.pick-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding-top: 10px;
+}
+
+.pick-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ion-color-medium);
+}
+
+.detail-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+}
+
+.pick-team-name {
+  font-size: 12px;
+}
+
+.pick-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+
+  ion-icon { font-size: 12px; }
+}

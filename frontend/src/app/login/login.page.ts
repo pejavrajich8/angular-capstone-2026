@@ -2,36 +2,34 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonInput, IonItem, IonLabel,
-} from '@ionic/angular/standalone';
+  Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, UserCredential,
+} from '@angular/fire/auth';
+import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
+import { IonContent } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: 'login.page.html',
   styleUrl: 'login.page.css',
-  imports: [
-    CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, IonInput, IonItem, IonLabel,
-  ],
+  imports: [CommonModule, FormsModule, IonContent],
 })
 export class LoginPage {
   email = '';
   password = '';
   error = '';
   loading = false;
+  rememberMe = false;
 
-  constructor(private auth: Auth, private router: Router) {}
+  constructor(private auth: Auth, private firestore: Firestore, private router: Router) {}
 
   async loginWithEmail() {
     this.error = '';
     this.loading = true;
     try {
-      await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      const cred = await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] email sign-in error:', e.code, e.message);
@@ -45,7 +43,8 @@ export class LoginPage {
     this.error = '';
     this.loading = true;
     try {
-      await signInWithPopup(this.auth, new GoogleAuthProvider());
+      const cred = await signInWithPopup(this.auth, new GoogleAuthProvider());
+      this.saveUserDoc(cred);
       this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
     } catch (e: any) {
       console.error('[Auth] Google sign-in error:', e.code, e.message);
@@ -53,6 +52,19 @@ export class LoginPage {
     } finally {
       this.loading = false;
     }
+  }
+
+  private saveUserDoc(cred: UserCredential) {
+    const { uid, email, displayName, photoURL } = cred.user;
+    setDoc(doc(this.firestore, 'users', uid), {
+      uid,
+      email,
+      displayName: displayName ?? email?.split('@')[0] ?? 'Player',
+      photoURL: photoURL ?? null,
+      lastLogin: serverTimestamp(),
+    }, { merge: true }).catch(err =>
+      console.warn('[Firestore] users doc write failed:', err.code)
+    );
   }
 
   private friendlyError(code: string, message?: string): string {

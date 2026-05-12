@@ -16,6 +16,7 @@ import { LogoutButtonComponent } from '../logout-button/logout-button.component'
   selector: 'app-tab1',
   standalone: true,
   templateUrl: 'tab1.page.html',
+  styleUrls: ['tab1.page.css'],
   imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, LogoutButtonComponent],
 })
 export class Tab1Page {
@@ -24,11 +25,137 @@ export class Tab1Page {
   playerCards: any[] = [];
   gameStarted: boolean = false;
   gameEnded: boolean = false;
+  revealDealerHand: boolean = false;
+  revealDealerScore: boolean = false;
+
+  // Betting / bankroll
+  bankroll: number = 0;
+  currentBet: number = 0;
+  private placedBet: number = 0;
+  private readonly bankrollStorageKey = 'blackjack_bankroll';
+  private autoNextRoundDelayMs = 1200;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.createDeck();
+    this.loadBankroll();
+  }
+
+  private loadBankroll() {
+    const raw = localStorage.getItem(this.bankrollStorageKey);
+    const parsed = raw ? Number(raw) : NaN;
+
+    // Starting money = $1000
+    this.bankroll = Number.isFinite(parsed) ? parsed : 1000;
+    this.saveBankroll();
+  }
+
+  private saveBankroll() {
+    localStorage.setItem(this.bankrollStorageKey, String(this.bankroll));
+  }
+
+  addToBet(amount: number) {
+    if (amount <= 0) return;
+    if (this.bankroll <= 0) return;
+
+  const updated = this.currentBet + amount;
+  if (updated > this.bankroll) return;
+
+  this.currentBet = updated;
+  }
+
+  clearBet() {
+    this.currentBet = 0;
+  }
+
+  placeBetAndStart() {
+    if (this.gameStarted) return;
+    if (this.currentBet <= 0) return;
+    if (this.currentBet > this.bankroll) return;
+
+  // Lock the bet for this hand.
+  this.placedBet = this.currentBet;
+    this.startRound();
+  }
+
+  resettothousand(){
+  this.bankroll = 1000;
+  this.currentBet = 0;
+  this.placedBet = 0;
+  this.saveBankroll();
+  }
+
+  quitGame() {
+    // Return to the pre-round screen.
+    this.resetRoundState();
+  }
+
+  private scheduleNextRound() {
+    if (this.bankroll <= 0) {
+      // Out of money: return to the pre-round screen.
+      this.resetRoundState();
+      return;
+    }
+    if (this.currentBet <= 0) {
+      this.currentBet = 10;
+    }
+    if (this.currentBet > this.bankroll) {
+      // Can't afford the current bet anymore. Go back to pre-round so they can choose.
+      this.resetRoundState();
+      return;
+    }
+
+    setTimeout(() => {
+      this.startRound();
+    }, this.autoNextRoundDelayMs);
+  }
+
+  private resetRoundState() {
+    this.dealerCards = [];
+    this.playerCards = [];
+    this.gameStarted = false;
+    this.gameEnded = false;
+    this.revealDealerHand = false;
+    this.revealDealerScore = false;
+  }
+
+  private startRound() {
+    // Clear old hands / UI flags
+    this.dealerCards = [];
+    this.playerCards = [];
+    this.gameEnded = false;
+    this.revealDealerHand = false;
+    this.revealDealerScore = false;
+
+    // If we auto-started the round, lock whatever the current bet is.
+    if (this.placedBet <= 0) {
+      this.placedBet = this.currentBet;
+    }
+
+    const beginDraws = () => {
+      this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
+        .subscribe((data: any) => {
+          this.dealerCards = data.cards;
+
+          this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
+            .subscribe((playerData: any) => {
+              this.playerCards = playerData.cards;
+              this.gameStarted = true;
+            });
+        });
+    };
+
+    // Make sure we have a deck id before drawing.
+    if (!this.deckId) {
+      this.http.get(`${environment.apiBaseUrl}/api/deck/create`).subscribe((data: any) => {
+        this.deckId = data.deck_id;
+        beginDraws();
+      });
+      return;
+    }
+
+    beginDraws();
   }
 
   getHandValue(cards: any[]): number {
@@ -65,21 +192,12 @@ export class Tab1Page {
   }
 
   drawCards() {
-    // Draw 2 cards for dealer
-    this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
-      .subscribe((data: any) => {
-        console.log('Dealer cards:', data.cards);
-        this.dealerCards = data.cards;
-
-        // Draw 2 cards for player
-        this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=2`)
-          .subscribe((playerData: any) => {
-            console.log('Player cards:', playerData.cards);
-            this.playerCards = playerData.cards;
-            this.gameStarted = true;
-            console.log('Game started - Dealer:', this.dealerCards, 'Player:', this.playerCards);
-          });
-      });
+    // Back-compat: treat the old Start Game button as "start with current bet".
+    // If no bet was chosen, default to $10.
+    if (this.currentBet <= 0) {
+      this.currentBet = 10;
+    }
+    this.placeBetAndStart();
   }
 
   hitMe() {
@@ -95,8 +213,17 @@ export class Tab1Page {
           console.log('Player hand value:', playerValue);
 
           if (playerValue > 21) {
+            this.gameEnded = true;
+            this.revealDealerHand = true;
+            this.revealDealerScore = true;
+
+            const loss = this.placedBet > 0 ? this.placedBet : this.currentBet;
+            this.placedBet = 0;
+            this.bankroll = Math.max(0, this.bankroll - loss);
+            this.saveBankroll();
+
             alert('You Lose! Hand value: ' + playerValue);
-            location.reload();
+            this.scheduleNextRound();
           }
         }, 500);
       });
@@ -105,6 +232,13 @@ export class Tab1Page {
   stand() {
     const playerValue = this.getHandValue(this.playerCards);
     console.log('Player stands with value:', playerValue);
+
+  // Reveal dealer's full hand now that the player has stood.
+  this.revealDealerHand = true;
+    this.revealDealerScore = false;
+    setTimeout(() => {
+      this.revealDealerScore = true;
+    }, 1000);
 
     // Dealer keeps drawing until 17 or higher
     const dealerDrawLoop = () => {
@@ -116,7 +250,10 @@ export class Tab1Page {
         this.http.get(`${environment.apiBaseUrl}/api/deck/draw?deckId=${this.deckId}&count=1`)
           .subscribe((data: any) => {
             this.dealerCards.push(data.cards[0]);
-            dealerDrawLoop();
+            // Slow down the dealer so the user can see each card arrive.
+            setTimeout(() => {
+              dealerDrawLoop();
+            }, 1000);
           });
       } else {
         // Dealer stands, determine winner
@@ -130,17 +267,38 @@ export class Tab1Page {
   determineWinner(playerValue: number, dealerValue: number) {
     console.log('Final - Player:', playerValue, 'Dealer:', dealerValue);
     this.gameEnded = true;
+  this.revealDealerHand = true;
+  this.revealDealerScore = true;
+
+  // Update bankroll only when the hand ends.
+  // IMPORTANT: use `placedBet` (the bet at hand start), not `currentBet`.
+  let delta = 0;
+    let message = '';
 
     if (dealerValue > 21) {
-      alert('Dealer Busted! You Win! Dealer: ' + dealerValue + ', You: ' + playerValue);
+      delta = this.placedBet;
+      message = `Dealer Busted! You Win! Dealer: ${dealerValue}, You: ${playerValue}`;
     } else if (playerValue > dealerValue) {
-      alert('You Win! Dealer: ' + dealerValue + ', You: ' + playerValue);
+      delta = this.placedBet;
+      message = `You Win! Dealer: ${dealerValue}, You: ${playerValue}`;
     } else if (playerValue === dealerValue) {
-      alert('Push (Tie)! Both have: ' + playerValue);
+      delta = 0;
+      message = `Push (Tie)! Both have: ${playerValue}`;
     } else {
-      alert('You Lose! Dealer: ' + dealerValue + ', You: ' + playerValue);
+      // Loss subtracts the last/placed bet for this finished hand.
+      delta = -this.placedBet;
+      message = `You Lose! Dealer: ${dealerValue}, You: ${playerValue}`;
     }
 
-    location.reload();
+    // Clear placedBet so the next hand re-locks cleanly.
+    this.placedBet = 0;
+
+    this.bankroll = Math.max(0, this.bankroll + delta);
+    this.saveBankroll();
+
+    alert(message);
+
+  // Automatically proceed to the next round.
+  this.scheduleNextRound();
   }
 }

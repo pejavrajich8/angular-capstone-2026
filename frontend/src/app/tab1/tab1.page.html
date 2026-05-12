@@ -11,26 +11,94 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+
   <div class="button-container" *ngIf="!gameStarted">
-    <ion-button id="Start" (click)="drawCards()">Start Game</ion-button>
+    <button class="secone" (click)="resettothousand()">.</button>
+    <!-- Betting (pre-round) -->
+    <aside class="betting betting-top" aria-label="Betting">
+      <div class="betting-header">
+        <h3 class="gasoek-one-regular betting-title">Betting</h3>
+        <div class="betting-amount">
+          Bet: $<span class="betting-amount-value">{{ currentBet }}</span>
+        </div>
+      </div>
+
+      <div class="betting-sub">
+        Bankroll: $<span class="betting-bankroll">{{ bankroll }}</span>
+      </div>
+
+      <div class="betting-chips" aria-label="Betting chips">
+        <button type="button" class="chip chip-1" (click)="addToBet(1)">$1</button>
+        <button type="button" class="chip chip-5" (click)="addToBet(5)">$5</button>
+        <button type="button" class="chip chip-10" (click)="addToBet(10)">$10</button>
+        <button type="button" class="chip chip-25" (click)="addToBet(25)">$25</button>
+      </div>
+
+      <div class="betting-actions">
+        <ion-button class="bet-btn" (click)="clearBet()" [disabled]="currentBet === 0">Clear</ion-button>
+        <ion-button id="Start" class="bet-btn" (click)="placeBetAndStart()" [disabled]="currentBet <= 0 || currentBet > bankroll">Start Round</ion-button>
+      </div>
+    </aside>
   </div>
 
   <div class="game-container" *ngIf="gameStarted">
+    <!-- Betting (during round) -->
+    <aside class="betting betting-top" aria-label="Betting">
+      <div class="betting-header">
+        <h3 class="gasoek-one-regular betting-title">Betting</h3>
+        <div class="betting-amount">
+          Bet: $<span class="betting-amount-value">{{ currentBet }}</span>
+        </div>
+      </div>
+
+      <div class="betting-sub">
+        Bankroll: $<span class="betting-bankroll">{{ bankroll }}</span>
+      </div>
+
+      <div class="betting-chips" aria-label="Betting chips">
+        <button type="button" class="chip chip-1" (click)="addToBet(1)">$1</button>
+        <button type="button" class="chip chip-5" (click)="addToBet(5)">$5</button>
+        <button type="button" class="chip chip-10" (click)="addToBet(10)">$10</button>
+        <button type="button" class="chip chip-25" (click)="addToBet(25)">$25</button>
+      </div>
+
+      <div class="betting-actions">
+  <ion-button class="bet-btn" (click)="clearBet()" [disabled]="currentBet === 0">Clear</ion-button>
+      </div>
+    </aside>
+
     <div class="dealer-section">
       <h2 class="gasoek-one-regular">Dealer</h2>
       <div class="cards">
-        <img *ngIf="dealerCards.length > 0" [src]="dealerCards[0].image" alt="Card" class="card-image" />
+        <!-- Before the player stands, only show the dealer's up-card. After stand (or game end), reveal the full hand. -->
+        <ng-container *ngIf="revealDealerHand; else dealerUpCard">
+          <img *ngFor="let card of dealerCards" [src]="card.image" alt="Card" class="card-image" />
+        </ng-container>
+        <ng-template #dealerUpCard>
+          <img *ngIf="dealerCards.length > 0" [src]="dealerCards[0].image" alt="Card" class="card-image" />
+        </ng-template>
       </div>
+  <h2 class="gasoek-one-regular dealer-total">Total: {{ getHandValue(dealerCards) }}</h2>
     </div>
 
     <div class="player-section">
       <h2 class="gasoek-one-regular">Player</h2>
-      <div class="cards">
-        <img *ngFor="let card of playerCards" [src]="card.image" alt="Card" class="card-image" />
+      <div class="player-row">
+        <div class="player-main">
+          <div class="cards">
+            <img *ngFor="let card of playerCards" [src]="card.image" alt="Card" class="card-image" />
+          </div>
+          <h2 class="gasoek-one-regular player-total">Total: {{ getHandValue(playerCards) }}</h2>
+        </div>
       </div>
+
       <div class="button-group">
         <ion-button (click)="hitMe()" class="but">Hit</ion-button>
         <ion-button (click)="stand()" class="but">Stand</ion-button>
+      </div>
+
+      <div class="footer-actions">
+        <ion-button color="medium" (click)="quitGame()">Quit Game</ion-button>
       </div>
     </div>
   </div>
@@ -41,3 +109,7 @@
     </ion-toolbar>
   </ion-header>
 </ion-content>
+
+
+
+<!-- testing that Seth2 works -->
