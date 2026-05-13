@@ -13,11 +13,11 @@ import { personCircleOutline, logOutOutline, personOutline } from 'ionicons/icon
   standalone: true,
   imports: [AsyncPipe, IonButton, IonIcon, IonPopover, IonList, IonItem, IonLabel],
   template: `
-    <ion-button fill="clear" [id]="triggerId" aria-label="Account menu">
+    <ion-button fill="clear" id="profile-menu-trigger" aria-label="Account menu">
       <ion-icon name="person-circle-outline" slot="icon-only" style="font-size: 28px;"></ion-icon>
     </ion-button>
 
-    <ion-popover [trigger]="triggerId" triggerAction="click" [dismissOnSelect]="true" side="bottom" alignment="end">
+    <ion-popover trigger="profile-menu-trigger" triggerAction="click" [dismissOnSelect]="true" side="bottom" alignment="end">
       <ng-template>
         <div class="profile-header">
           <ion-icon name="person-circle-outline" class="profile-avatar"></ion-icon>
@@ -109,7 +109,6 @@ import { personCircleOutline, logOutOutline, personOutline } from 'ionicons/icon
 })
 export class LogoutButtonComponent {
   currentUser$;
-  triggerId = `profile-menu-trigger-${Math.random().toString(36).slice(2)}`;
 
   constructor(private auth: Auth, private router: Router) {
     this.currentUser$ = user(this.auth);

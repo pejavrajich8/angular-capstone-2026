@@ -201,26 +201,3 @@
   height: 18px;
   flex-shrink: 0;
 }
-
-.login-footer {
-  text-align: center;
-  color: #8a8a9a;
-  font-size: 14px;
-  margin: 4px 0 0;
-}
-
-.link-btn {
-  background: none;
-  border: none;
-  color: #a78bfa;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.link-btn:hover {
-  color: #c4b5fd;
-}
