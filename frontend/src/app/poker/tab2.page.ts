@@ -18,6 +18,7 @@ import {
 } from '@ionic/angular/standalone';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 import { PokerService } from '../services/poker.service';
+import { CurrencyService } from '../services/currency.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
@@ -63,32 +64,25 @@ export class Tab2Page implements OnInit, OnDestroy {
   showWinnerModal: boolean = false;
   footerExpanded: boolean = false;
   bankroll: number = 1000;
-  private bankrollStorageKey = 'poker_bankroll';
   private destroy$ = new Subject<void>();
   private initialized: boolean = false;
 
-  constructor(private pokerService: PokerService) {
+  constructor(private pokerService: PokerService, private currencyService: CurrencyService) {
     this.tableId = this.generateTableId();
     console.log('Generated tableId:', this.tableId);
   }
 
   ngOnInit() {
     this.loadBankroll();
+    // Bankroll is the user's shared currency balance.
+    this.currencyService.getCurrencyObservable().subscribe((balance) => {
+      this.bankroll = balance ?? 0;
+    });
     this.initializePoker();
   }
 
-  private loadBankroll() {
-    const raw = localStorage.getItem(this.bankrollStorageKey);
-    const parsed = raw ? Number(raw) : NaN;
-
-    // Starting money = $1000
-    this.bankroll = Number.isFinite(parsed) ? parsed : 1000;
-    this.saveBankroll();
-  }
-
   private saveBankroll() {
-    localStorage.setItem(this.bankrollStorageKey, String(this.bankroll));
-  }
+    // No-op: bankroll is backed by CurrencyService/Firestore.
 
   private generateTableId(): string {
     return uuidv4().substring(0, 8);
