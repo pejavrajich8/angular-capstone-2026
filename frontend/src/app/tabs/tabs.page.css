@@ -14,6 +14,10 @@ ion-tabs.tabs-hidden ion-tab-bar {
 }
 
 ion-tab-bar {
+  --background: #12121e;
+  --border: 1px solid #2a2a3e;
+  --color: #8a8a9a;
+  --color-selected: #a78bfa;
   transition: transform 220ms ease, opacity 220ms ease;
 }
 
