@@ -2,6 +2,19 @@
   font-style: normal;
 }
 
+ion-content {
+  --background: #07070f;
+}
+
+ion-toolbar {
+  --background: #12121e;
+  --border-color: #2a2a3e;
+}
+
+ion-title {
+  color: #f0f0f5;
+}
+
 .button-container {
   display: flex;
   flex-direction: column;

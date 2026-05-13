@@ -12,13 +12,14 @@ import {
 } from '@ionic/angular/standalone';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 import { CurrencyService } from '../services/currency.service';
+import { CurrencyDisplayComponent } from '../components/currency-display/currency-display.component';
 
 @Component({
   selector: 'app-tab1',
   standalone: true,
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.css'],
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, LogoutButtonComponent],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, LogoutButtonComponent, CurrencyDisplayComponent],
 })
 export class Tab1Page {
   deckId: string = '';

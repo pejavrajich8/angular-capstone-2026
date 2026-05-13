@@ -77,6 +77,15 @@
   }
 }
 
+ion-toolbar {
+  --background: #12121e;
+  --border-color: #2a2a3e;
+}
+
+ion-title {
+  color: #f0f0f5;
+}
+
 ion-content {
   --background:
   radial-gradient(1200px 700px at 50% 0%, rgba(124, 58, 237, 0.533) 0%, #07070f 55%),
