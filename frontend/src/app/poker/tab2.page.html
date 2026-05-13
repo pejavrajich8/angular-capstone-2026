@@ -2,6 +2,7 @@
   <ion-toolbar>
     <ion-title>Poker Table</ion-title>
     <ion-buttons slot="end">
+      <app-currency-display></app-currency-display>
       <app-logout-button />
     </ion-buttons>
   </ion-toolbar>
@@ -40,20 +41,23 @@
         </div>
 
         <!-- Out of Money Modal -->
-        <div *ngIf="bankroll === 0" class="out-of-money-modal">
+        <div *ngIf="bankroll < 1000 && !gameStarted" class="out-of-money-modal">
           <div class="out-of-money-content">
-            <h2>💸 Out of Money! 💸</h2>
-            <p class="out-message">You don't have enough funds to play poker.</p>
+            <h2>💸 Need More Chips! 💸</h2>
+            <p class="out-message">You need at least $1,000 to buy in to the table.</p>
             <p class="out-amount">Current Balance: ${{ bankroll }}</p>
             <div class="out-actions">
+              <ion-button class="action-btn top-up-btn" (click)="topUpBalance()">Top Up $1,000</ion-button>
               <ion-button class="action-btn" (click)="goBack()">Back to Lobby</ion-button>
             </div>
           </div>
         </div>
 
         <div class="board" aria-hidden="true">
-          <div *ngFor="let card of gameState?.communityCards" class="card" [title]="card.rank + card.suit">
-            {{ card.rank }}{{ card.suit }}
+          <div *ngFor="let card of gameState?.communityCards" class="card board-card"
+               [class.red-card]="card.suit === '♥' || card.suit === '♦'">
+            <span class="card-rank">{{ card.rank }}</span>
+            <span class="card-suit">{{ card.suit }}</span>
           </div>
         </div>
 
@@ -93,11 +97,13 @@
 
       <div class="hand-dock">
         <div class="hand-cards">
-          <div *ngFor="let card of holeCards" class="card">
-            {{ card.rank }}{{ card.suit }}
+          <div *ngFor="let card of holeCards" class="card hole-card"
+               [class.red-card]="card.suit === '♥' || card.suit === '♦'">
+            <span class="card-rank">{{ card.rank }}</span>
+            <span class="card-suit">{{ card.suit }}</span>
           </div>
-          <div *ngIf="holeCards.length === 0" class="card empty">?</div>
-          <div *ngIf="holeCards.length === 0" class="card empty">?</div>
+          <div *ngIf="holeCards.length === 0" class="card hole-card empty">?</div>
+          <div *ngIf="holeCards.length === 0" class="card hole-card empty">?</div>
         </div>
       </div>
 

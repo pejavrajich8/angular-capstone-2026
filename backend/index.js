@@ -36,7 +36,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
-    origin: ['http://localhost:8100', 'http://localhost:4200'],
+    origin: [
+      'http://localhost:8100',
+      'http://localhost:4200',
+      ...(process.env.BACKEND_ALLOWED_ORIGINS
+        ? process.env.BACKEND_ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
+        : []),
+    ],
     methods: ['GET', 'POST'],
   },
 });
@@ -205,7 +211,7 @@ io.on('connection', (socket) => {
       if (firebaseUid && db) {
         try {
           await db.collection('users').doc(firebaseUid).update({
-            currency: admin.firestore.FieldValue.increment(-buyInAmount),
+            balance: admin.firestore.FieldValue.increment(-buyInAmount),
           });
           console.log(`Deducted $${buyInAmount} buy-in from user ${firebaseUid}`);
         } catch (error) {
@@ -336,7 +342,7 @@ io.on('connection', (socket) => {
         // Refund remaining chips to Firebase if available
         try {
           await db.collection('users').doc(playerData.firebaseUid).update({
-            currency: admin.firestore.FieldValue.increment(player.chipStack),
+            balance: admin.firestore.FieldValue.increment(player.chipStack),
           });
           console.log(`Refunded $${player.chipStack} to user ${playerData.firebaseUid}`);
         } catch (error) {
@@ -495,11 +501,9 @@ function endHand(tableId) {
     const winner = activePlayers[0];
     winner.chipStack += game.pot;
 
-    // Update Firebase if it's a human player
-    updateFirebaseWinnings(tableId, winner);
-
     io.to(tableId).emit('handEnd', {
       winner: winner.name,
+      winnerId: winner.id,
       winAmount: game.pot,
       handType: 'Everyone folded',
       gameState: game.getGameState(),
@@ -512,13 +516,14 @@ function endHand(tableId) {
     
     result.winners.forEach(winner => {
       winner.chipStack += splitAmount;
-      // Update Firebase for each winner
-      updateFirebaseWinnings(tableId, winner, splitAmount);
     });
 
     io.to(tableId).emit('handEnd', {
       winner: winnersNames,
+      winnerId: result.winners[0].id,
+      winnerIds: result.winners.map(w => w.id),
       winAmount: game.pot,
+      splitAmount,
       handType: result.bestHand,
       winners: result.winners.map(w => ({ name: w.name, holeCards: w.holeCards })),
       gameState: game.getGameState(),
@@ -538,7 +543,7 @@ async function updateFirebaseWinnings(tableId, player, amount = null) {
   const winAmount = amount || player.chipStack;
   try {
     await db.collection('users').doc(playerData.firebaseUid).update({
-      currency: admin.firestore.FieldValue.increment(winAmount),
+      balance: admin.firestore.FieldValue.increment(winAmount),
     });
     console.log(`Added $${winAmount} to user ${playerData.firebaseUid}`);
   } catch (error) {

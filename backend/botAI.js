@@ -250,15 +250,14 @@ class BotAI {
       return { action: 'check', delay };
     }
 
-    if (legalActions.includes('fold')) {
-      const shouldFold = this.shouldFold(player, game.currentBet, game.pot, game.communityCards);
-      if (shouldFold) {
-        return { action: 'fold', delay };
-      }
-    }
-
-    // Fallback decision logic
     if (legalActions.includes('call')) {
+      const shouldCall = this.shouldCall(player, game.currentBet, game.communityCards);
+      if (!shouldCall) {
+        const shouldFold = this.shouldFold(player, game.currentBet, game.pot, game.communityCards);
+        if (shouldFold && legalActions.includes('fold')) {
+          return { action: 'fold', delay };
+        }
+      }
       return { action: 'call', delay };
     }
 

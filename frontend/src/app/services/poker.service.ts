@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +14,11 @@ export class PokerService {
   private messages$ = new BehaviorSubject<string>('');
   private holeCards$ = new BehaviorSubject<any[]>([]);
   private handEnd$ = new Subject<any>();
+  public mySocketId: string | null = null;
 
   constructor(private ngZone: NgZone) {}
 
-  connect(backendUrl: string = 'http://localhost:3333'): Promise<void> {
+  connect(backendUrl: string = environment.apiBaseUrl): Promise<void> {
     return new Promise((resolve, reject) => {
       // If already connected, resolve immediately
       if (this.socket && this.socket.connected) {
@@ -37,7 +39,8 @@ export class PokerService {
 
       this.socket.on('connect', () => {
         clearTimeout(connectTimeout);
-        console.log('Connected to poker server');
+        this.mySocketId = this.socket!.id ?? null;
+        console.log('Connected to poker server, socket id:', this.mySocketId);
         resolve();
       });
 
@@ -49,9 +52,12 @@ export class PokerService {
 
       this.socket.on('awaitingAction', (data) => {
         this.ngZone.run(() => {
-          this.playerTurn$.next(true);
-          this.legalActions$.next(data.legalActions);
-          this.messages$.next(`Your turn! Legal actions: ${data.legalActions.join(', ')}`);
+          const isMyTurn = data.playerId === this.mySocketId;
+          this.playerTurn$.next(isMyTurn);
+          if (isMyTurn) {
+            this.legalActions$.next(data.legalActions);
+            this.messages$.next(`Your turn! Legal actions: ${data.legalActions.join(', ')}`);
+          }
         });
       });
 
@@ -71,6 +77,7 @@ export class PokerService {
 
       this.socket.on('disconnect', () => {
         console.log('Disconnected from poker server');
+        this.mySocketId = null;
         this.playerTurn$.next(false);
       });
 
