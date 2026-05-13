@@ -5,8 +5,32 @@ const cors = require('cors');
 const http = require('http');
 const socketIO = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
+const admin = require('firebase-admin');
 const PokerGame = require('./poker');
 const BotAI = require('./botAI');
+
+// Initialize Firebase Admin SDK
+let db = null;
+try {
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+    : null;
+
+  if (serviceAccountKey) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccountKey),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+    db = admin.firestore();
+    console.log('Firebase Admin SDK initialized');
+  } else {
+    console.warn('⚠️  FIREBASE_SERVICE_ACCOUNT_KEY not set. Poker currency integration disabled.');
+    console.warn('To enable: Set FIREBASE_SERVICE_ACCOUNT_KEY environment variable with your service account JSON.');
+  }
+} catch (error) {
+  console.warn('⚠️  Firebase Admin SDK initialization failed:', error.message);
+  console.warn('Poker will work without Firebase currency integration.');
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -171,10 +195,23 @@ const playerSockets = new Map();
 io.on('connection', (socket) => {
   console.log('New player connected:', socket.id);
 
-  socket.on('joinGame', (data, callback) => {
+  socket.on('joinGame', async (data, callback) => {
     try {
-      const { tableId, playerName, difficulty = 'medium' } = data;
+      const { tableId, playerName, firebaseUid, difficulty = 'medium' } = data;
       const playerId = socket.id;
+
+      // Deduct buy-in from Firebase if available
+      const buyInAmount = 1000;
+      if (firebaseUid && db) {
+        try {
+          await db.collection('users').doc(firebaseUid).update({
+            currency: admin.firestore.FieldValue.increment(-buyInAmount),
+          });
+          console.log(`Deducted $${buyInAmount} buy-in from user ${firebaseUid}`);
+        } catch (error) {
+          console.warn('Could not deduct buy-in from Firebase:', error.message);
+        }
+      }
 
       let game = pokerGames.get(tableId);
       if (!game) {
@@ -191,7 +228,7 @@ io.on('connection', (socket) => {
 
       const result = game.addPlayer(playerId, playerName, false);
       if (result.success) {
-        playerSockets.set(playerId, { socket, tableId, difficulty });
+        playerSockets.set(playerId, { socket, tableId, difficulty, firebaseUid });
         socket.join(tableId);
 
         callback({ success: true, game: game.getGameState() });
@@ -287,12 +324,26 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('Player disconnected:', socket.id);
+    const playerData = playerSockets.get(socket.id);
     playerSockets.delete(socket.id);
 
     // Remove from all games but keep tables alive for rejoin
     for (const [tableId, game] of pokerGames.entries()) {
+      const player = game.players.find(p => p.id === socket.id);
+      if (player && player.chipStack > 0 && playerData && playerData.firebaseUid && db) {
+        // Refund remaining chips to Firebase if available
+        try {
+          await db.collection('users').doc(playerData.firebaseUid).update({
+            currency: admin.firestore.FieldValue.increment(player.chipStack),
+          });
+          console.log(`Refunded $${player.chipStack} to user ${playerData.firebaseUid}`);
+        } catch (error) {
+          console.error('Error refunding chips:', error);
+        }
+      }
+      
       game.removePlayer(socket.id);
       // Only delete table if no players at all (including bots)
       // This allows human players to rejoin later
@@ -444,6 +495,9 @@ function endHand(tableId) {
     const winner = activePlayers[0];
     winner.chipStack += game.pot;
 
+    // Update Firebase if it's a human player
+    updateFirebaseWinnings(tableId, winner);
+
     io.to(tableId).emit('handEnd', {
       winner: winner.name,
       winAmount: game.pot,
@@ -458,6 +512,8 @@ function endHand(tableId) {
     
     result.winners.forEach(winner => {
       winner.chipStack += splitAmount;
+      // Update Firebase for each winner
+      updateFirebaseWinnings(tableId, winner, splitAmount);
     });
 
     io.to(tableId).emit('handEnd', {
@@ -470,6 +526,24 @@ function endHand(tableId) {
   }
 
   game.gameState = 'finished';
+}
+
+async function updateFirebaseWinnings(tableId, player, amount = null) {
+  // Only update Firebase for human (non-bot) players
+  if (player.isBot || !db) return;
+
+  const playerData = playerSockets.get(player.id);
+  if (!playerData || !playerData.firebaseUid) return;
+
+  const winAmount = amount || player.chipStack;
+  try {
+    await db.collection('users').doc(playerData.firebaseUid).update({
+      currency: admin.firestore.FieldValue.increment(winAmount),
+    });
+    console.log(`Added $${winAmount} to user ${playerData.firebaseUid}`);
+  } catch (error) {
+    console.error('Error updating Firebase winnings:', error);
+  }
 }
 
 // REST API endpoints for poker

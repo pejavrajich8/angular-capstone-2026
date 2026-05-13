@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Location } from '@angular/common';
+import { Auth } from '@angular/fire/auth';
 import {
   IonHeader,
   IonToolbar,
@@ -18,6 +20,7 @@ import {
 } from '@ionic/angular/standalone';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
 import { PokerService } from '../services/poker.service';
+import { CurrencyService } from '../services/currency.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
@@ -62,32 +65,33 @@ export class Tab2Page implements OnInit, OnDestroy {
   handEndData: any = null;
   showWinnerModal: boolean = false;
   footerExpanded: boolean = false;
-  bankroll: number = 1000;
-  private bankrollStorageKey = 'poker_bankroll';
+  bankroll: number = 0;
   private destroy$ = new Subject<void>();
   private initialized: boolean = false;
 
-  constructor(private pokerService: PokerService) {
+  constructor(
+    private pokerService: PokerService,
+    private currencyService: CurrencyService,
+    private location: Location,
+    private auth: Auth
+  ) {
     this.tableId = this.generateTableId();
     console.log('Generated tableId:', this.tableId);
   }
 
   ngOnInit() {
-    this.loadBankroll();
-    this.initializePoker();
+    // Bankroll is the user's shared currency balance.
+    this.currencyService.getCurrencyObservable().subscribe((balance) => {
+      this.bankroll = balance ?? 0;
+      // Only initialize poker if user has money
+      if (this.bankroll > 0 && !this.initialized) {
+        this.initializePoker();
+      }
+    });
   }
 
-  private loadBankroll() {
-    const raw = localStorage.getItem(this.bankrollStorageKey);
-    const parsed = raw ? Number(raw) : NaN;
-
-    // Starting money = $1000
-    this.bankroll = Number.isFinite(parsed) ? parsed : 1000;
-    this.saveBankroll();
-  }
-
-  private saveBankroll() {
-    localStorage.setItem(this.bankrollStorageKey, String(this.bankroll));
+  goBack() {
+    this.location.back();
   }
 
   private generateTableId(): string {
@@ -159,17 +163,15 @@ export class Tab2Page implements OnInit, OnDestroy {
         .getHandEnd$()
         .pipe(takeUntil(this.destroy$))
         .subscribe((data) => {
-          this.handEndData = data;
-          this.showWinnerModal = true;
-          setTimeout(() => {
-            this.showWinnerModal = false;
-            this.handEndData = null;
-            this.startGame(); // Restart the game
-          }, 3000);
+          this.onHandEnd(data);
         });
 
       // Join the game
-      await this.pokerService.joinGame(this.tableId, this.playerName);
+      const firebaseUid = this.auth.currentUser?.uid;
+      if (!firebaseUid) {
+        throw new Error('User not authenticated');
+      }
+      await this.pokerService.joinGame(this.tableId, this.playerName, firebaseUid);
       console.log('Joined game, tableId:', this.tableId);
       this.messages = 'Joined poker table!';
       
@@ -281,5 +283,17 @@ export class Tab2Page implements OnInit, OnDestroy {
 
   toggleFooter() {
     this.footerExpanded = !this.footerExpanded;
+  }
+
+  onHandEnd(data: any) {
+    this.handEndData = data;
+    this.showWinnerModal = true;
+    
+    // The backend will handle Firebase updates, but frontend still syncs via CurrencyService observable
+    setTimeout(() => {
+      this.showWinnerModal = false;
+      this.handEndData = null;
+      this.startGame();
+    }, 3000);
   }
 }

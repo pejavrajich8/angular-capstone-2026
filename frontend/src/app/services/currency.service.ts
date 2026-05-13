@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -17,18 +17,24 @@ export interface UserCurrency {
 export class CurrencyService {
   private currencySubject = new BehaviorSubject<number>(0);
   public currency$ = this.currencySubject.asObservable();
+  private initialized = false;
 
-  constructor(private auth: Auth, private firestore: Firestore) {
-    this.initializeCurrencyListener();
+  constructor(private auth: Auth, private firestore: Firestore, private ngZone: NgZone) {
+    // Defer initialization to avoid injection context issues
+    this.ngZone.runOutsideAngular(() => {
+      this.initializeCurrencyListener();
+    });
   }
 
   /**
    * Initialize real-time listener for current user's currency balance
    */
   private initializeCurrencyListener() {
-    this.auth.onAuthStateChanged(async (user) => {
+    this.auth.onAuthStateChanged((user) => {
       if (user) {
-        await this.loadCurrencyBalance(user.uid);
+        this.ngZone.run(() => {
+          this.loadCurrencyBalance(user.uid);
+        });
       } else {
         this.currencySubject.next(0);
       }

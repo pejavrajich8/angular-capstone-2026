@@ -39,6 +39,18 @@
           </div>
         </div>
 
+        <!-- Out of Money Modal -->
+        <div *ngIf="bankroll === 0" class="out-of-money-modal">
+          <div class="out-of-money-content">
+            <h2>💸 Out of Money! 💸</h2>
+            <p class="out-message">You don't have enough funds to play poker.</p>
+            <p class="out-amount">Current Balance: ${{ bankroll }}</p>
+            <div class="out-actions">
+              <ion-button class="action-btn" (click)="goBack()">Back to Lobby</ion-button>
+            </div>
+          </div>
+        </div>
+
         <div class="board" aria-hidden="true">
           <div *ngFor="let card of gameState?.communityCards" class="card" [title]="card.rank + card.suit">
             {{ card.rank }}{{ card.suit }}

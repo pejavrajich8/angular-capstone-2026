@@ -1316,6 +1316,79 @@ ion-title {
   animation: pulse 1.5s infinite;
 }
 
+/* Out of Money Modal */
+.out-of-money-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  inset: 0;
+}
+
+.out-of-money-content {
+  background: linear-gradient(135deg, #3a1a1a 0%, #1a0a0a 100%);
+  border: 3px solid #ff6b6b;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  color: #f5f0e8;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: slideUp 0.4s ease;
+  max-width: 500px;
+  width: 90%;
+}
+
+.out-of-money-content h2 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: #ff6b6b;
+  text-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+}
+
+.out-message {
+  font-size: 1.2em;
+  color: #f5f0e8;
+  margin: 15px 0;
+  font-weight: 500;
+}
+
+.out-amount {
+  font-size: 1.5em;
+  color: #ffd700;
+  margin: 15px 0;
+  font-weight: 700;
+}
+
+.out-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.out-actions .action-btn {
+  --background: #ff6b6b;
+  --color: #fff;
+  --border-radius: 8px;
+  --padding: 12px 24px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.out-actions .action-btn:hover {
+  --background: #ff5252;
+}
+
 .other-player p {
   margin: 5px 0;
   font-size: 0.95em;
