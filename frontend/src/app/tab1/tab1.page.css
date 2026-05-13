@@ -188,6 +188,9 @@ ion-title {
 .chip-5 { background: #2dd36f; }
 .chip-10 { background: #3dc2ff; }
 .chip-25 { background: #ffc409; }
+.chip-100 { background: #7044ff; color: #ffffff; }
+.chip-500 { background: #ff4961; color: #ffffff; }
+.chip-1000 { background: #00f5d4; }
 
 .betting-actions {
   display: flex;
