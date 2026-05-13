@@ -36,6 +36,12 @@ export class Tab1Page {
   private placedBet: number = 0;
   private autoNextRoundDelayMs = 1200;
 
+  // Non-blocking round result UI (replaces `alert()`)
+  lastResultMessage: string = '';
+  lastResultType: 'win' | 'lose' | 'push' | 'info' = 'info';
+  showResultBanner: boolean = false;
+  private resultBannerTimer: any;
+
   constructor(private http: HttpClient, private currencyService: CurrencyService) {}
 
   ngOnInit() {
@@ -125,6 +131,31 @@ export class Tab1Page {
     this.gameEnded = false;
     this.revealDealerHand = false;
     this.revealDealerScore = false;
+
+    // Hide any previous result message when returning to pre-round.
+    this.hideResultBanner();
+  }
+
+  private showResult(message: string, type: 'win' | 'lose' | 'push' | 'info' = 'info') {
+    this.lastResultMessage = message;
+    this.lastResultType = type;
+    this.showResultBanner = true;
+
+    if (this.resultBannerTimer) {
+      clearTimeout(this.resultBannerTimer);
+    }
+    // Auto-hide so the user doesn't have to click anything.
+    this.resultBannerTimer = setTimeout(() => {
+      this.showResultBanner = false;
+    }, 1600);
+  }
+
+  private hideResultBanner() {
+    this.showResultBanner = false;
+    if (this.resultBannerTimer) {
+      clearTimeout(this.resultBannerTimer);
+      this.resultBannerTimer = undefined;
+    }
   }
 
   private startRound() {
@@ -228,7 +259,7 @@ export class Tab1Page {
             this.placedBet = 0;
             this.currencyService.spendCurrency(loss, 'blackjack_loss');
 
-            alert('You Lose! Hand value: ' + playerValue);
+            this.showResult(`Busted! You lose. You: ${playerValue}`, 'lose');
             this.scheduleNextRound();
           }
         }, 500);
@@ -284,16 +315,20 @@ export class Tab1Page {
     if (dealerValue > 21) {
       delta = this.placedBet;
       message = `Dealer Busted! You Win! Dealer: ${dealerValue}, You: ${playerValue}`;
+  this.lastResultType = 'win';
     } else if (playerValue > dealerValue) {
       delta = this.placedBet;
       message = `You Win! Dealer: ${dealerValue}, You: ${playerValue}`;
+  this.lastResultType = 'win';
     } else if (playerValue === dealerValue) {
       delta = 0;
       message = `Push (Tie)! Both have: ${playerValue}`;
+  this.lastResultType = 'push';
     } else {
       // Loss subtracts the last/placed bet for this finished hand.
       delta = -this.placedBet;
       message = `You Lose! Dealer: ${dealerValue}, You: ${playerValue}`;
+  this.lastResultType = 'lose';
     }
 
     // Clear placedBet so the next hand re-locks cleanly.
@@ -305,7 +340,7 @@ export class Tab1Page {
       this.currencyService.spendCurrency(Math.abs(delta), 'blackjack_loss');
     }
 
-    alert(message);
+  this.showResult(message, this.lastResultType);
 
   // Automatically proceed to the next round.
   this.scheduleNextRound();

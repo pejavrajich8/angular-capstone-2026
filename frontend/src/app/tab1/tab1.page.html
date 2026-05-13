@@ -13,6 +13,19 @@
 
 <ion-content [fullscreen]="true">
 
+  <!-- Non-blocking result message (replaces alert popups) -->
+  <div
+    class="result-banner"
+    *ngIf="showResultBanner"
+    [class.result-win]="lastResultType === 'win'"
+    [class.result-lose]="lastResultType === 'lose'"
+    [class.result-push]="lastResultType === 'push'"
+    role="status"
+    aria-live="polite"
+  >
+    {{ lastResultMessage }}
+  </div>
+
   <div class="button-container" *ngIf="!gameStarted">
     <button class="secone" (click)="resettothousand()">.</button>
     <!-- Betting (pre-round) -->
