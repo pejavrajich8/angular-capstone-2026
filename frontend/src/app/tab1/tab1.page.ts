@@ -34,27 +34,21 @@ export class Tab1Page {
   bankroll: number = 0;
   currentBet: number = 0;
   private placedBet: number = 0;
-  private readonly bankrollStorageKey = 'blackjack_bankroll';
   private autoNextRoundDelayMs = 1200;
 
   constructor(private http: HttpClient, private currencyService: CurrencyService) {}
 
   ngOnInit() {
     this.createDeck();
-    this.loadBankroll();
-  }
 
-  private loadBankroll() {
-    const raw = localStorage.getItem(this.bankrollStorageKey);
-    const parsed = raw ? Number(raw) : NaN;
-
-    // Starting money = $1000
-    this.bankroll = Number.isFinite(parsed) ? parsed : 1000;
-    this.saveBankroll();
+    // Bankroll is the user's shared currency balance.
+    this.currencyService.getCurrencyObservable().subscribe((balance) => {
+      this.bankroll = balance ?? 0;
+    });
   }
 
   private saveBankroll() {
-    localStorage.setItem(this.bankrollStorageKey, String(this.bankroll));
+    // No-op: bankroll is backed by CurrencyService/Firestore.
   }
 
   addToBet(amount: number) {
@@ -82,12 +76,8 @@ export class Tab1Page {
   }
 
   resettothousand(){
-    // Reset both the local blackjack bankroll and the shared (Firestore-backed) currency balance.
-    // This keeps the header currency + slots currency consistent across the app.
-    this.bankroll = 1000;
     this.currentBet = 0;
     this.placedBet = 0;
-    this.saveBankroll();
 
     // Set Firestore balance to exactly 1000.
     // We do this via a "delta" so we don't need a new API in CurrencyService.
@@ -236,8 +226,7 @@ export class Tab1Page {
 
             const loss = this.placedBet > 0 ? this.placedBet : this.currentBet;
             this.placedBet = 0;
-            this.bankroll = Math.max(0, this.bankroll - loss);
-            this.saveBankroll();
+            this.currencyService.spendCurrency(loss, 'blackjack_loss');
 
             alert('You Lose! Hand value: ' + playerValue);
             this.scheduleNextRound();
@@ -310,8 +299,11 @@ export class Tab1Page {
     // Clear placedBet so the next hand re-locks cleanly.
     this.placedBet = 0;
 
-    this.bankroll = Math.max(0, this.bankroll + delta);
-    this.saveBankroll();
+    if (delta > 0) {
+      this.currencyService.addCurrency(delta, 'blackjack_win');
+    } else if (delta < 0) {
+      this.currencyService.spendCurrency(Math.abs(delta), 'blackjack_loss');
+    }
 
     alert(message);
 
