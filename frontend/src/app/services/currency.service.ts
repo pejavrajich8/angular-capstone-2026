@@ -119,7 +119,7 @@ export class CurrencyService {
       });
 
       const newBalance = (this.currencySubject.getValue() || 0) + amount;
-      this.currencySubject.next(newBalance);
+      this.ngZone.run(() => this.currencySubject.next(newBalance));
       
       return true;
     } catch (error) {
@@ -160,7 +160,7 @@ export class CurrencyService {
       });
 
       const newBalance = currentBalance - amount;
-      this.currencySubject.next(newBalance);
+      this.ngZone.run(() => this.currencySubject.next(newBalance));
       
       return true;
     } catch (error) {
