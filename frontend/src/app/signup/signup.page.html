@@ -3,9 +3,20 @@
     <div class="login-card">
       <img src="logo.png" alt="Pajer Casino" class="login-logo" />
       <h1 class="modak-regular login-brand">Pajer Casino</h1>
-      <p class="login-subtitle">Welcome Back</p>
+      <p class="login-subtitle">Create Your Account</p>
 
       <div class="login-form">
+        <div class="input-group">
+          <label class="input-label">Display Name</label>
+          <input
+            class="login-input"
+            type="text"
+            placeholder="Your name"
+            [(ngModel)]="displayName"
+            autocomplete="name"
+          />
+        </div>
+
         <div class="input-group">
           <label class="input-label">Email</label>
           <input
@@ -13,7 +24,6 @@
             type="email"
             placeholder="you@example.com"
             [(ngModel)]="email"
-            (keyup.enter)="loginWithEmail()"
             autocomplete="email"
           />
         </div>
@@ -25,15 +35,21 @@
             type="password"
             placeholder="••••••••"
             [(ngModel)]="password"
-            (keyup.enter)="loginWithEmail()"
-            autocomplete="current-password"
+            autocomplete="new-password"
           />
         </div>
 
-        <label class="remember-me">
-          <input type="checkbox" [(ngModel)]="rememberMe" />
-          <span>Remember me</span>
-        </label>
+        <div class="input-group">
+          <label class="input-label">Confirm Password</label>
+          <input
+            class="login-input"
+            type="password"
+            placeholder="••••••••"
+            [(ngModel)]="confirmPassword"
+            (keyup.enter)="signUpWithEmail()"
+            autocomplete="new-password"
+          />
+        </div>
 
         @if (error) {
           <p class="login-error">{{ error }}</p>
@@ -42,9 +58,9 @@
         <button
           class="btn-primary"
           [disabled]="loading"
-          (click)="loginWithEmail()"
+          (click)="signUpWithEmail()"
         >
-          {{ loading ? 'Signing in…' : 'Sign In' }}
+          {{ loading ? 'Creating account…' : 'Create Account' }}
         </button>
 
         <div class="divider"><span>or</span></div>
@@ -52,7 +68,7 @@
         <button
           class="btn-google"
           [disabled]="loading"
-          (click)="loginWithGoogle()"
+          (click)="signUpWithGoogle()"
         >
           <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -64,8 +80,8 @@
         </button>
 
         <p class="login-footer">
-          Don't have an account?
-          <button class="link-btn" (click)="goToSignup()">Sign Up</button>
+          Already have an account?
+          <button class="link-btn" (click)="goToLogin()">Sign In</button>
         </p>
       </div>
     </div>
