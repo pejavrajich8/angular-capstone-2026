@@ -18,19 +18,16 @@ ion-title {
 /* Win/Lose/Push banner (non-blocking) */
 .result-banner {
   position: fixed;
-  top: 50%;
+  top: 74px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(640px, calc(100vw - 32px));
-  padding: 16px 18px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 24px));
+  padding: 10px 12px;
   border-radius: 14px;
   font-weight: 800;
   letter-spacing: 0.2px;
   text-align: center;
   z-index: 9999;
-
-  font-size: 20px;
-  line-height: 1.25;
 
   color: rgba(255, 255, 255, 0.95);
   background: rgba(20, 20, 32, 0.92);
@@ -58,11 +55,11 @@ ion-title {
 @keyframes resultPop {
   from {
     opacity: 0;
-  transform: translate(-50%, -50%) scale(0.98);
+    transform: translateX(-50%) translateY(-6px);
   }
   to {
     opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+    transform: translateX(-50%) translateY(0);
   }
 }
 

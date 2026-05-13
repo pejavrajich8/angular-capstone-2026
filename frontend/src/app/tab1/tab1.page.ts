@@ -65,10 +65,20 @@ export class Tab1Page {
   if (updated > this.bankroll) return;
 
   this.currentBet = updated;
+
+    // If you're betting during an active hand, also update the bet that will be
+    // used for payout/loss (placedBet). Otherwise it looks like the bet "won't change".
+    if (this.gameStarted && !this.gameEnded) {
+      this.placedBet = this.currentBet;
+    }
   }
 
   clearBet() {
     this.currentBet = 0;
+
+    if (this.gameStarted && !this.gameEnded) {
+      this.placedBet = 0;
+    }
   }
 
   placeBetAndStart() {
