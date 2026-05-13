@@ -78,6 +78,10 @@ export class LoginPage {
     );
   }
 
+  goToSignup() {
+    this.router.navigateByUrl('/signup');
+  }
+
   private friendlyError(code: string, message?: string): string {
     switch (code) {
       case 'auth/invalid-credential':
