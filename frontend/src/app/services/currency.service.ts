@@ -62,25 +62,36 @@ export class CurrencyService {
   /**
    * Initialize currency for a new user (called on first login)
    * New players start with 1000 coins for slots
+   * Only initializes if user doesn't already have currency data
    */
   async initializeUserCurrency(uid: string): Promise<void> {
-    try {
-      const userRef = doc(this.firestore, 'users', uid);
-      await setDoc(
-        userRef,
-        {
-          balance: 1000,
-          totalEarned: 1000,
-          totalSpent: 0,
-          lastUpdated: serverTimestamp(),
-        },
-        { merge: true }
-      );
-      this.currencySubject.next(1000);
-    } catch (error) {
-      console.error('Failed to initialize user currency:', error);
+  try {
+    const userRef = doc(this.firestore, 'users', uid);
+    
+    // setDoc with merge:true only ADDS missing fields — it won't overwrite existing ones
+    // But balance needs special handling since setDoc doesn't know "only if missing"
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      // Doc exists — just sync whatever balance is already there, never write
+      const existingBalance = userSnap.data()?.['balance'] ?? 0;
+      this.currencySubject.next(existingBalance);
+      return; // ← hard return, no write at all
     }
+
+    // Only reaches here if the doc truly does not exist yet
+    await setDoc(userRef, {
+      balance: 1000,
+      totalEarned: 1000,
+      totalSpent: 0,
+      lastUpdated: serverTimestamp(),
+    });
+
+    this.currencySubject.next(1000);
+  } catch (error) {
+    console.error('Failed to initialize user currency:', error);
   }
+}
 
   /**
    * Add currency to user's balance (slots winnings)

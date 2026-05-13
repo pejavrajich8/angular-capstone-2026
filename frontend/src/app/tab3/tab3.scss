@@ -4,11 +4,12 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  background: linear-gradient(135deg, #252527 0%, #0f1013 100%);
-  border-radius: 12px;
-  border: 2px solid rgba(14, 247, 14, 0.3);
+  background: #16161f;
+  border-radius: 16px;
+  border: 1px solid #7c3aed35;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   margin: 16px 12px 0;
-  color: rgb(191, 160, 222);
+  color: #f0f0f5;
 
   .balance-card {
     text-align: center;
@@ -16,15 +17,17 @@
     .balance-label {
       font-size: 12px;
       font-weight: 600;
-      opacity: 0.9;
+  opacity: 1;
       margin: 0 0 4px;
       letter-spacing: 0.5px;
+  color: #8a8a9a;
     }
 
     .balance-amount {
       font-size: 32px;
       font-weight: 700;
       margin: 0;
+  color: #a78bfa;
     }
   }
 //bet
@@ -34,9 +37,10 @@
     .bet-label {
       font-size: 12px;
       font-weight: 600;
-      opacity: 0.9;
+  opacity: 1;
       margin: 0 0 8px;
       letter-spacing: 0.5px;
+  color: #8a8a9a;
     }
 
     .bet-input {
@@ -45,11 +49,17 @@
       font-size: 16px;
       font-weight: 700;
       text-align: center;
-      border: 2px solid rgba(14, 247, 14, 0.3);
-      border-radius: 8px;
-      background: #252527;
-      color: rgb(191, 160, 222);
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      background: #12121e;
+      color: #f0f0f5;
       margin-bottom: 8px;
+
+      &:focus {
+        outline: none;
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+      }
 
       &:disabled {
         opacity: 0.6;
@@ -62,14 +72,15 @@
       opacity: 0.85;
       margin: 0;
       letter-spacing: 0.3px;
+  color: #b0b0c0;
     }
   }
 }
 
 ion-content {
   --background:
-    radial-gradient(1200px 700px at 50% 0%, #3d3f45 0%, #222328 45%, #131417 100%),
-    linear-gradient(135deg, #1d1f24 0%, #0f1013 100%);
+  radial-gradient(1200px 700px at 50% 0%, rgba(124, 58, 237, 0.533) 0%, #07070f 55%),
+  linear-gradient(135deg, #1d1d45 0%, #07070f 100%);
     animation: riseIn 800ms ease-out;
 }
 
@@ -85,19 +96,19 @@ ion-content {
   .slots-display {
     display: flex;
     gap: 16px;
-    background: linear-gradient(135deg, #2b2630 0%, #0f1013 100%);
+  background: #16161f;
     padding: 20px;
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(126, 234, 102, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border: 1px solid #7c3aed35;
 
     .reel-container {
       width: 80px;
       height: 80px;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+  background: #12121e;
       border-radius: 12px;
       overflow: hidden;
-      border: 2px solid rgba(113, 234, 102, 0.5);
+  border: 1px solid #2a2a3e;
       position: relative;
       box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
 
@@ -141,35 +152,41 @@ ion-content {
   text-align: center;
   padding: 16px;
   margin: 16px 12px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2a2a2d 0%, #0f1013 100%);
-  border: 1px solid #e74c3c;
+  border-radius: 16px;
+  background: #16161f;
+  border: 1px solid #2a2a3e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 
   &.win {
-    background: linear-gradient(135deg, #272b27 0%, #0f1013 100%);
-    border: 1px solid #28a745;
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
 
     .result-title {
-      color: #155724;
+  color: #22c55e;
     }
 
     .result-amount {
-      color: #28a745;
+      color: #22c55e;
     }
+  }
+
+  &:not(.win) {
+    border-color: rgba(239, 68, 68, 0.55);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
   }
 
   .result-title {
     margin: 0 0 8px;
     font-size: 18px;
     font-weight: 700;
-    color: #721c24;
+  color: #ef4444;
   }
 
   .result-amount {
     margin: 0;
     font-size: 24px;
     font-weight: 700;
-    color: #c3212b;
+  color: #ef4444;
   }
 }
 
@@ -180,9 +197,9 @@ ion-content {
     --border-radius: 12px;
     --padding-start: 32px;
     --padding-end: 32px;
-    --background: #0f1013;
-    --color: #764ba2;
-    --border-color: #764ba2;
+    --background: #12121e;
+    --color: #a78bfa;
+    --border-color: #7c3aed;
     --border-style: solid;
     --border-width: 1px;
     font-weight: 700;
@@ -197,6 +214,11 @@ ion-content {
       &:active {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         transform: translateY(2px);
+      }
+
+      &:hover {
+        filter: brightness(1.08);
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2), 0 10px 24px rgba(0, 0, 0, 0.35);
       }
     }
 
@@ -213,7 +235,7 @@ ion-content {
     margin: 0 0 12px;
     font-size: 16px;
     font-weight: 700;
-    color: var(--ion-color-dark);
+  color: #f0f0f5;
   }
 
   .history-list {
@@ -226,9 +248,10 @@ ion-content {
       justify-content: space-between;
       align-items: center;
       padding: 12px;
-      background: #0f1013;
-      border-radius: 8px;
-      border: 1px solid #e74c3c;
+  background: #16161f;
+  border-radius: 14px;
+  border: 1px solid #2a2a3e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
       transition: transform 0.15s ease;
 
       &:active {
@@ -236,8 +259,11 @@ ion-content {
       }
 
       &.win {
-        background: #0f1013;
-        border: 1px solid #28a745;
+        border-color: rgba(34, 197, 94, 0.6);
+      }
+
+      &:not(.win) {
+        border-color: rgba(239, 68, 68, 0.55);
       }
 
       .history-symbols {
@@ -250,11 +276,11 @@ ion-content {
         font-size: 14px;
 
         .history-item.win & {
-          color: #28a745;
+          color: #22c55e;
         }
 
         .history-item:not(.win) & {
-          color: #c3212b;
+          color: #ef4444;
         }
       }
     }
@@ -262,7 +288,7 @@ ion-content {
 
   .no-history {
     text-align: center;
-    color: var(--ion-color-medium);
+  color: #8a8a9a;
     padding: 24px;
     font-style: italic;
   }

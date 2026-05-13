@@ -72,10 +72,8 @@ export class LoginPage {
       console.warn('[Firestore] users doc write failed:', err.code)
     );
     
-    // Initialize currency for the user
-    this.currencyService.initializeUserCurrency(uid).catch(err =>
-      console.warn('[Currency] initialization failed:', err)
-    );
+    // Don't initialize currency here - let CurrencyService.loadCurrencyBalance() handle it
+    // The onAuthStateChanged listener will automatically load the balance
   }
 
   private friendlyError(code: string, message?: string): string {
