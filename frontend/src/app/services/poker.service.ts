@@ -80,15 +80,15 @@ export class PokerService {
     });
   }
 
-  joinGame(tableId: string, playerName: string): Promise<any> {
+  joinGame(tableId: string, playerName: string, firebaseUid: string): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!this.socket) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      console.log('Joining game:', { tableId, playerName });
-      this.socket.emit('joinGame', { tableId, playerName }, (response: any) => {
+      console.log('Joining game:', { tableId, playerName, firebaseUid });
+      this.socket.emit('joinGame', { tableId, playerName, firebaseUid }, (response: any) => {
         console.log('Join game response:', response);
         if (response.success) {
           resolve(response.game);
