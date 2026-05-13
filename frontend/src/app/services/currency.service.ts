@@ -76,7 +76,7 @@ export class CurrencyService {
       // Doc exists — just sync whatever balance is already there, never write
       const existingBalance = userSnap.data()?.['balance'] ?? 0;
       this.currencySubject.next(existingBalance);
-      return; // ← hard return, no write at all
+      return;   
     }
 
     // Only reaches here if the doc truly does not exist yet
