@@ -11,6 +11,7 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+import { CurrencyService } from '../services/currency.service';
 
 @Component({
   selector: 'app-tab1',
@@ -35,7 +36,7 @@ export class Tab1Page {
   private readonly bankrollStorageKey = 'blackjack_bankroll';
   private autoNextRoundDelayMs = 1200;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private currencyService: CurrencyService) {}
 
   ngOnInit() {
     this.createDeck();
@@ -80,10 +81,25 @@ export class Tab1Page {
   }
 
   resettothousand(){
-  this.bankroll = 1000;
-  this.currentBet = 0;
-  this.placedBet = 0;
-  this.saveBankroll();
+    // Reset both the local blackjack bankroll and the shared (Firestore-backed) currency balance.
+    // This keeps the header currency + slots currency consistent across the app.
+    this.bankroll = 1000;
+    this.currentBet = 0;
+    this.placedBet = 0;
+    this.saveBankroll();
+
+    // Set Firestore balance to exactly 1000.
+    // We do this via a "delta" so we don't need a new API in CurrencyService.
+    const current = this.currencyService.getCurrentBalance();
+    const diff = 1000 - current;
+    if (diff !== 0) {
+      // Positive diff => addCurrency, negative diff => spendCurrency
+      if (diff > 0) {
+        this.currencyService.addCurrency(diff, 'blackjack_reset');
+      } else {
+        this.currencyService.spendCurrency(Math.abs(diff), 'blackjack_reset');
+      }
+    }
   }
 
   quitGame() {
