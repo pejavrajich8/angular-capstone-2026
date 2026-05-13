@@ -2047,6 +2047,46 @@ ion-title {
   font-weight: 500;
 }
 
+/* ── Card content display ─────────────────────────────────── */
+.board-card,
+.hole-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  gap: 2px;
+}
+
+.board-card .card-rank,
+.hole-card .card-rank {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.board-card .card-suit,
+.hole-card .card-suit {
+  font-size: 1.3em;
+  line-height: 1;
+}
+
+.red-card .card-rank,
+.red-card .card-suit {
+  color: #c41e3a;
+}
+
+.hole-card.empty {
+  color: rgba(255,255,255,0.7);
+  font-size: 1.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────────────────── */
+
 @media (max-width: 540px) {
   .board {
     gap: 6px;

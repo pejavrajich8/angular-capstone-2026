@@ -19,6 +19,7 @@ import {
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { LogoutButtonComponent } from '../logout-button/logout-button.component';
+import { CurrencyDisplayComponent } from '../components/currency-display/currency-display.component';
 import { PokerService } from '../services/poker.service';
 import { CurrencyService } from '../services/currency.service';
 import { Subject } from 'rxjs';
@@ -46,6 +47,7 @@ import { v4 as uuidv4 } from 'uuid';
     IonText,
     IonSpinner,
     LogoutButtonComponent,
+    CurrencyDisplayComponent,
   ],
 })
 export class Tab2Page implements OnInit, OnDestroy {
@@ -68,6 +70,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   bankroll: number = 0;
   private destroy$ = new Subject<void>();
   private initialized: boolean = false;
+  private readonly buyIn = 1000;
 
   constructor(
     private pokerService: PokerService,
@@ -94,92 +97,74 @@ export class Tab2Page implements OnInit, OnDestroy {
     this.location.back();
   }
 
+  async topUpBalance() {
+    await this.currencyService.addCurrency(1000, 'poker_topup');
+  }
+
   private generateTableId(): string {
     return uuidv4().substring(0, 8);
   }
 
   ngOnDestroy() {
+    // Refund whatever chips remain at the table back to the global balance
+    const remaining = this.getPlayerStack();
+    if (remaining > 0) {
+      this.currencyService.addCurrency(remaining, 'poker_refund');
+    }
     this.destroy$.next();
     this.destroy$.complete();
     this.pokerService.disconnect();
   }
 
   async initializePoker() {
+    if (this.initialized) return;
+    this.initialized = true;
+    this.isLoading = true;
+
+    // Check balance before doing anything
+    if (this.bankroll < this.buyIn) {
+      this.messages = `Need $${this.buyIn} to buy in. Current balance: $${this.bankroll}.`;
+      this.isLoading = false;
+      this.initialized = false;
+      return;
+    }
+
+    let buyInDeducted = false;
     try {
-      // Only initialize once
-      if (this.initialized) {
+      // Connect first — if this fails we haven't touched money yet
+      await this.pokerService.connect();
+
+      // Wire up subscriptions
+      this.pokerService.getGameState$().pipe(takeUntil(this.destroy$)).subscribe(s => this.gameState = s);
+      this.pokerService.getPlayerTurn$().pipe(takeUntil(this.destroy$)).subscribe(t => this.isPlayerTurn = t);
+      this.pokerService.getLegalActions$().pipe(takeUntil(this.destroy$)).subscribe(a => this.legalActions = a);
+      this.pokerService.getMessages$().pipe(takeUntil(this.destroy$)).subscribe(m => this.messages = m);
+      this.pokerService.getHoleCards$().pipe(takeUntil(this.destroy$)).subscribe(c => this.holeCards = c);
+      this.pokerService.getHandEnd$().pipe(takeUntil(this.destroy$)).subscribe(d => this.onHandEnd(d));
+
+      // Deduct buy-in only after connection is confirmed
+      const bought = await this.currencyService.spendCurrency(this.buyIn, 'poker_buyin');
+      if (!bought) {
+        this.messages = `Need $${this.buyIn} to buy in.`;
+        this.initialized = false;
         return;
       }
-      this.initialized = true;
-      this.isLoading = true;
-      console.log('Initializing poker with tableId:', this.tableId);
+      buyInDeducted = true;
 
-      // Connect to WebSocket
-      await this.pokerService.connect();
-      console.log('Connected to poker service');
-
-      // Subscribe to game state updates
-      this.pokerService
-        .getGameState$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((state) => {
-          this.gameState = state;
-        });
-
-      // Subscribe to player turn
-      this.pokerService
-        .getPlayerTurn$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((isTurn) => {
-          this.isPlayerTurn = isTurn;
-        });
-
-      // Subscribe to legal actions
-      this.pokerService
-        .getLegalActions$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((actions) => {
-          this.legalActions = actions;
-        });
-
-      // Subscribe to messages
-      this.pokerService
-        .getMessages$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((msg) => {
-          this.messages = msg;
-        });
-
-      // Subscribe to hole cards
-      this.pokerService
-        .getHoleCards$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((cards) => {
-          this.holeCards = cards;
-        });
-
-      // Subscribe to hand end
-      this.pokerService
-        .getHandEnd$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((data) => {
-          this.onHandEnd(data);
-        });
-
-      // Join the game
       const firebaseUid = this.auth.currentUser?.uid;
-      if (!firebaseUid) {
-        throw new Error('User not authenticated');
-      }
+      if (!firebaseUid) throw new Error('User not authenticated');
+
       await this.pokerService.joinGame(this.tableId, this.playerName, firebaseUid);
-      console.log('Joined game, tableId:', this.tableId);
       this.messages = 'Joined poker table!';
-      
-      // Start the game automatically
       await this.startGame();
     } catch (error) {
       console.error('Error initializing poker:', error);
-      this.messages = `Error: ${error}`;
+      this.messages = `Connection failed: ${error}`;
+      // Refund buy-in if we deducted it but the game never started
+      if (buyInDeducted) {
+        await this.currencyService.addCurrency(this.buyIn, 'poker_buyin_refund');
+      }
+      this.initialized = false;
     } finally {
       this.isLoading = false;
     }
@@ -253,12 +238,12 @@ export class Tab2Page implements OnInit, OnDestroy {
 
   getPlayerInfo() {
     if (!this.gameState) return null;
-    return this.gameState.players.find((p: any) => p.id === (this.pokerService as any).socket?.id);
+    return this.gameState.players.find((p: any) => p.id === this.pokerService.mySocketId);
   }
 
   getOtherPlayers() {
     if (!this.gameState) return [];
-    return this.gameState.players.filter((p: any) => p.id !== (this.pokerService as any).socket?.id);
+    return this.gameState.players.filter((p: any) => p.id !== this.pokerService.mySocketId);
   }
 
   getAmountToCall(): number {
@@ -288,8 +273,20 @@ export class Tab2Page implements OnInit, OnDestroy {
   onHandEnd(data: any) {
     this.handEndData = data;
     this.showWinnerModal = true;
-    
-    // The backend will handle Firebase updates, but frontend still syncs via CurrencyService observable
+
+    // Credit winnings to global balance if this player won
+    const myId = this.pokerService.mySocketId;
+    const iWon = data.winnerIds
+      ? data.winnerIds.includes(myId)
+      : data.winnerId === myId;
+
+    if (iWon) {
+      const payout = data.splitAmount ?? data.winAmount ?? 0;
+      if (payout > 0) {
+        this.currencyService.addCurrency(payout, 'poker_win');
+      }
+    }
+
     setTimeout(() => {
       this.showWinnerModal = false;
       this.handEndData = null;
